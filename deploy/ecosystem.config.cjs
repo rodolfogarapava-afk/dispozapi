@@ -1,3 +1,24 @@
+const fs = require('fs')
+
+function readEnvFile(filePath) {
+  if (!fs.existsSync(filePath)) return {}
+
+  return Object.fromEntries(
+    fs.readFileSync(filePath, 'utf8')
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => line && !line.startsWith('#') && line.includes('='))
+      .map((line) => {
+        const separator = line.indexOf('=')
+        const key = line.slice(0, separator).trim()
+        const value = line.slice(separator + 1).trim().replace(/^(['"])(.*)\1$/, '$2')
+        return [key, value]
+      }),
+  )
+}
+
+const webEnv = readEnvFile('/opt/dispozapi/shared/web.env')
+
 module.exports = {
   apps: [
     {
@@ -17,6 +38,7 @@ module.exports = {
       interpreter: 'node',
       env: {
         NODE_ENV: 'production',
+        ...webEnv,
       },
       autorestart: true,
       max_memory_restart: '700M',
@@ -24,4 +46,3 @@ module.exports = {
     },
   ],
 }
-
