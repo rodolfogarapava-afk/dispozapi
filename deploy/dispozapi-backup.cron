@@ -1,0 +1,1 @@
+17 3 * * * root /opt/dispozapi/current/deploy/backup.sh >> /var/log/dispozapi-backup.log 2>&1
