@@ -238,7 +238,7 @@ export default function GroupsPage() {
         )}
       />
 
-      <section className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(330px,.65fr)]">
+      <section>
         <div className="app-tool-shell">
           <div className="flex flex-wrap items-center gap-3 border-b border-border p-4">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400"><Users className="h-5 w-5" /></div>
@@ -342,43 +342,6 @@ export default function GroupsPage() {
           </div>
         </div>
 
-        <div className="app-surface p-4">
-          <div className="mb-4 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary"><Link2 className="h-5 w-5" /></div>
-            <div><h2 className="text-sm font-bold text-foreground">Analisar convite</h2><p className="text-[11px] text-muted-foreground">Consulte um link antes de entrar.</p></div>
-          </div>
-          <label htmlFor="invite-link" className="mb-1.5 block text-[11px] font-medium text-muted-foreground">Link do grupo</label>
-          <textarea id="invite-link" rows={3} value={inviteLink} onChange={(event) => { setInviteLink(event.target.value); setInvitePreview(null) }} placeholder="https://chat.whatsapp.com/…" className={`${fieldClass} resize-none`} />
-          <button type="button" onClick={() => void inspectInvite()} disabled={inspecting || !inviteLink} className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/10 px-4 py-2.5 text-xs font-bold text-primary hover:bg-primary/15 disabled:opacity-40">
-            {inspecting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />} Consultar convite
-          </button>
-
-          {invitePreview ? (
-            <div className="mt-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3">
-              <div className="flex items-start gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400"><Users className="h-4 w-4" /></div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs font-bold text-foreground">{invitePreview.subject}</p>
-                  <p className="mt-0.5 text-[10px] text-muted-foreground">{invitePreview.participantCount} participantes</p>
-                </div>
-                <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-              </div>
-              <p className="mt-3 line-clamp-3 text-[11px] leading-4 text-muted-foreground">{invitePreview.description || 'Convite válido, sem descrição pública.'}</p>
-              <label className="mt-3 flex cursor-pointer items-start gap-2 text-[10px] text-muted-foreground">
-                <input type="checkbox" checked={membershipConfirmed} onChange={(event) => setMembershipConfirmed(event.target.checked)} className="mt-0.5 accent-[#00AEEF]" />
-                Confirmo que tenho autorização para participar deste grupo.
-              </label>
-              <button type="button" onClick={() => void joinGroup()} disabled={joining || invitePreview.joined} className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 text-xs font-bold text-white hover:bg-emerald-400 disabled:opacity-50">
-                {joining ? <Loader2 className="h-4 w-4 animate-spin" /> : invitePreview.joined ? <Check className="h-4 w-4" /> : <LogIn className="h-4 w-4" />}
-                {invitePreview.joined ? 'Grupo adicionado' : 'Entrar no grupo'}
-              </button>
-            </div>
-          ) : (
-            <div className="mt-4 rounded-xl border border-dashed border-border px-4 py-5 text-center text-[11px] text-muted-foreground">
-              A consulta mostra nome, descrição e quantidade de participantes antes de qualquer ação.
-            </div>
-          )}
-        </div>
       </section>
 
       {loadingParticipants ? (
@@ -430,6 +393,44 @@ export default function GroupsPage() {
           </div>
         </section>
       ) : null}
+
+      <section className="app-surface p-4">
+        <div className="mb-4 flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary"><Link2 className="h-5 w-5" /></div>
+          <div><h2 className="text-sm font-bold text-foreground">Analisar convite</h2><p className="text-[11px] text-muted-foreground">Consulte um link antes de entrar.</p></div>
+        </div>
+        <label htmlFor="invite-link" className="mb-1.5 block text-[11px] font-medium text-muted-foreground">Link do grupo</label>
+        <textarea id="invite-link" rows={3} value={inviteLink} onChange={(event) => { setInviteLink(event.target.value); setInvitePreview(null) }} placeholder="https://chat.whatsapp.com/…" className={`${fieldClass} resize-none`} />
+        <button type="button" onClick={() => void inspectInvite()} disabled={inspecting || !inviteLink} className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/10 px-4 py-2.5 text-xs font-bold text-primary hover:bg-primary/15 disabled:opacity-40">
+          {inspecting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />} Consultar convite
+        </button>
+
+        {invitePreview ? (
+          <div className="mt-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3">
+            <div className="flex items-start gap-2.5">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400"><Users className="h-4 w-4" /></div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs font-bold text-foreground">{invitePreview.subject}</p>
+                <p className="mt-0.5 text-[10px] text-muted-foreground">{invitePreview.participantCount} participantes</p>
+              </div>
+              <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+            </div>
+            <p className="mt-3 line-clamp-3 text-[11px] leading-4 text-muted-foreground">{invitePreview.description || 'Convite válido, sem descrição pública.'}</p>
+            <label className="mt-3 flex cursor-pointer items-start gap-2 text-[10px] text-muted-foreground">
+              <input type="checkbox" checked={membershipConfirmed} onChange={(event) => setMembershipConfirmed(event.target.checked)} className="mt-0.5 accent-[#00AEEF]" />
+              Confirmo que tenho autorização para participar deste grupo.
+            </label>
+            <button type="button" onClick={() => void joinGroup()} disabled={joining || invitePreview.joined} className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 text-xs font-bold text-white hover:bg-emerald-400 disabled:opacity-50">
+              {joining ? <Loader2 className="h-4 w-4 animate-spin" /> : invitePreview.joined ? <Check className="h-4 w-4" /> : <LogIn className="h-4 w-4" />}
+              {invitePreview.joined ? 'Grupo adicionado' : 'Entrar no grupo'}
+            </button>
+          </div>
+        ) : (
+          <div className="mt-4 rounded-xl border border-dashed border-border px-4 py-5 text-center text-[11px] text-muted-foreground">
+            A consulta mostra nome, descrição e quantidade de participantes antes de qualquer ação.
+          </div>
+        )}
+      </section>
 
       <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-500/15 bg-amber-500/5 px-4 py-3 text-[10px] text-amber-300/80">
         <span className="inline-flex items-center gap-2"><ShieldCheck className="h-3.5 w-3.5" /> Use somente grupos e contatos para os quais você possui autorização.</span>
