@@ -31,8 +31,35 @@ function participantsFrom(group: any) {
       : []
 
   return raw.map((participant: any) => {
-    const jid = String(participant?.id || participant?.jid || participant?.phoneNumber || '')
-    const phone = jid.includes('@lid') ? '' : jid.split('@')[0].replace(/\D/g, '')
+    const jid = String(
+      participant?.id
+      || participant?.jid
+      || participant?.JID
+      || participant?.lid
+      || participant?.LID
+      || participant?.phoneNumber
+      || participant?.PhoneNumber
+      || '',
+    )
+    const phoneCandidates = [
+      participant?.phoneNumber,
+      participant?.PhoneNumber,
+      participant?.pn,
+      participant?.PN,
+      participant?.participantPn,
+      participant?.participantAlt,
+      participant?.remoteJidAlt,
+      participant?.jid,
+      participant?.JID,
+      participant?.id,
+    ]
+    const phone = phoneCandidates.reduce((resolved: string, candidate: unknown) => {
+      if (resolved) return resolved
+      const value = String(candidate || '').trim()
+      if (!value || value.includes('@lid')) return ''
+      const normalized = value.split('@')[0].split(':')[0].replace(/\D/g, '')
+      return /^\d{10,15}$/.test(normalized) ? normalized : ''
+    }, '')
     return {
       id: jid,
       phone,
