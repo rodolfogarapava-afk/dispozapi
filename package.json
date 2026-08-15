@@ -1,0 +1,21 @@
+{
+  "name": "dispozapi",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "db:generate": "pnpm --filter @crm/api exec prisma generate --schema prisma/schema.prisma",
+    "db:migrate": "pnpm --filter @crm/api exec prisma migrate dev --schema prisma/schema.prisma",
+    "db:seed": "pnpm --filter @crm/api exec prisma db seed --schema prisma/schema.prisma"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0",
+    "typescript": "^5.4.0",
+    "@types/node": "^20.0.0"
+  },
+  "packageManager": "pnpm@9.0.0",
+  "engines": { "node": ">=20.0.0" }
+}

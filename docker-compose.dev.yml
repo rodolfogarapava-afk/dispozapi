@@ -1,0 +1,27 @@
+version: '3.9'
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: crm_db
+      POSTGRES_USER: crm_user
+      POSTGRES_PASSWORD: crm_pass
+    ports: ["5432:5432"]
+    volumes: [postgres_data:/var/lib/postgresql/data]
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+
+  evolution:
+    image: atendai/evolution-api:latest
+    ports: ["8080:8080"]
+    environment:
+      SERVER_URL: http://localhost:8080
+      AUTHENTICATION_API_KEY: zapshark_local_key
+      DATABASE_PROVIDER: postgresql
+      DATABASE_CONNECTION_URI: postgresql://crm_user:crm_pass@postgres:5432/crm_db
+    depends_on: [postgres]
+
+volumes:
+  postgres_data:

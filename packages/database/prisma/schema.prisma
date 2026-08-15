@@ -1,0 +1,371 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── MULTI-TENANT ─────────────────────────────────────────
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  plan        Plan     @default(FREE)
+  planExpires DateTime?
+  logo        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users       User[]
+  contacts    Contact[]
+  pipelines   Pipeline[]
+  whatsappInstances WhatsappInstance[]
+  campaigns   Campaign[]
+  chatbots    Chatbot[]
+  invoices    Invoice[]
+  teams       Team[]
+
+  @@map("organizations")
+}
+
+enum Plan {
+  FREE
+  STARTER
+  PRO
+  ENTERPRISE
+}
+
+// ─── USERS & AUTH ─────────────────────────────────────────
+model User {
+  id             String   @id @default(cuid())
+  name           String
+  email          String   @unique
+  password       String
+  avatar         String?
+  role           Role     @default(MEMBER)
+  emailVerified  Boolean  @default(false)
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  teamMembers    TeamMember[]
+  activities     Activity[]
+  assignedDeals  Deal[]
+
+  @@map("users")
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  MANAGER
+  MEMBER
+}
+
+// ─── TEAMS ────────────────────────────────────────────────
+model Team {
+  id             String   @id @default(cuid())
+  name           String
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  members        TeamMember[]
+  createdAt      DateTime @default(now())
+
+  @@map("teams")
+}
+
+model TeamMember {
+  id        String   @id @default(cuid())
+  teamId    String
+  userId    String
+  team      Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+  @@map("team_members")
+}
+
+// ─── CONTACTS ─────────────────────────────────────────────
+model Contact {
+  id             String   @id @default(cuid())
+  name           String
+  email          String?
+  phone          String
+  document       String?
+  avatar         String?
+  tags           String[]
+  notes          String?
+  source         String?
+  status         ContactStatus @default(ACTIVE)
+  customFields   Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  deals          Deal[]
+  activities     Activity[]
+  messages       Message[]
+  campaignContacts CampaignContact[]
+
+  @@map("contacts")
+}
+
+enum ContactStatus {
+  ACTIVE
+  INACTIVE
+  BLOCKED
+}
+
+// ─── PIPELINE & DEALS ─────────────────────────────────────
+model Pipeline {
+  id             String   @id @default(cuid())
+  name           String
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  stages         Stage[]
+  createdAt      DateTime @default(now())
+
+  @@map("pipelines")
+}
+
+model Stage {
+  id         String @id @default(cuid())
+  name       String
+  order      Int
+  color      String @default("#6366f1")
+  pipelineId String
+  pipeline   Pipeline @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  deals      Deal[]
+
+  @@map("stages")
+}
+
+model Deal {
+  id          String    @id @default(cuid())
+  title       String
+  value       Float     @default(0)
+  currency    String    @default("BRL")
+  probability Int       @default(50)
+  expectedAt  DateTime?
+  closedAt    DateTime?
+  status      DealStatus @default(OPEN)
+  notes       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  stageId    String
+  stage      Stage   @relation(fields: [stageId], references: [id])
+  contactId  String
+  contact    Contact @relation(fields: [contactId], references: [id])
+  assignedId String?
+  assignedTo User?   @relation(fields: [assignedId], references: [id])
+  activities Activity[]
+
+  @@map("deals")
+}
+
+enum DealStatus {
+  OPEN
+  WON
+  LOST
+}
+
+// ─── ACTIVITIES ───────────────────────────────────────────
+model Activity {
+  id          String       @id @default(cuid())
+  type        ActivityType
+  title       String
+  description String?
+  dueAt       DateTime?
+  doneAt      DateTime?
+  createdAt   DateTime     @default(now())
+
+  userId    String
+  user      User    @relation(fields: [userId], references: [id])
+  contactId String?
+  contact   Contact? @relation(fields: [contactId], references: [id])
+  dealId    String?
+  deal      Deal?   @relation(fields: [dealId], references: [id])
+
+  @@map("activities")
+}
+
+enum ActivityType {
+  CALL
+  EMAIL
+  MEETING
+  TASK
+  NOTE
+  WHATSAPP
+}
+
+// ─── WHATSAPP ─────────────────────────────────────────────
+model WhatsappInstance {
+  id             String          @id @default(cuid())
+  name           String
+  number         String?
+  status         InstanceStatus  @default(DISCONNECTED)
+  qrCode         String?
+  webhookUrl     String?
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  conversations  Conversation[]
+  createdAt      DateTime @default(now())
+
+  @@map("whatsapp_instances")
+}
+
+enum InstanceStatus {
+  CONNECTED
+  DISCONNECTED
+  CONNECTING
+}
+
+model Conversation {
+  id           String   @id @default(cuid())
+  remoteJid    String
+  pushName     String?
+  profilePicUrl String?
+  unreadCount  Int      @default(0)
+  lastMessage  String?
+  lastMessageAt DateTime?
+  assignedId   String?
+  status       ConversationStatus @default(OPEN)
+  botPaused        Boolean   @default(false)
+  botPausedUntil   DateTime?
+  botPausedReason  String?
+  aiCategory       String?
+  aiStageSuggested Boolean   @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  instanceId String
+  instance   WhatsappInstance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  messages   Message[]
+
+  @@unique([instanceId, remoteJid])
+  @@map("conversations")
+}
+
+enum ConversationStatus {
+  OPEN
+  CLOSED
+  PENDING
+}
+
+model Message {
+  id          String      @id @default(cuid())
+  remoteJid   String
+  messageId   String      @unique
+  content     String
+  senderName  String?     // nome de quem enviou (usado em grupos)
+  mediaUrl    String?
+  mediaType   String?
+  fromMe      Boolean     @default(false)
+  status      MessageStatus @default(SENT)
+  timestamp   DateTime
+
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  contactId      String?
+  contact        Contact? @relation(fields: [contactId], references: [id])
+
+  @@map("messages")
+}
+
+enum MessageStatus {
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
+// ─── CAMPAIGNS ────────────────────────────────────────────
+model Campaign {
+  id             String         @id @default(cuid())
+  name           String
+  message        String
+  mediaUrl       String?
+  status         CampaignStatus @default(DRAFT)
+  scheduledAt    DateTime?
+  startedAt      DateTime?
+  finishedAt     DateTime?
+  totalSent      Int            @default(0)
+  totalFailed    Int            @default(0)
+  createdAt      DateTime       @default(now())
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  contacts       CampaignContact[]
+
+  @@map("campaigns")
+}
+
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED
+  RUNNING
+  PAUSED
+  FINISHED
+}
+
+model CampaignContact {
+  id         String        @id @default(cuid())
+  status     MessageStatus @default(SENT)
+  sentAt     DateTime?
+  error      String?
+
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  contactId  String
+  contact    Contact  @relation(fields: [contactId], references: [id])
+
+  @@unique([campaignId, contactId])
+  @@map("campaign_contacts")
+}
+
+// ─── CHATBOT ──────────────────────────────────────────────
+model Chatbot {
+  id             String  @id @default(cuid())
+  name           String
+  active         Boolean @default(true)
+  triggerType    String  @default("all")
+  triggerValue   String?
+  flow           Json
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("chatbots")
+}
+
+// ─── FINANCIAL ────────────────────────────────────────────
+model Invoice {
+  id             String        @id @default(cuid())
+  plan           Plan
+  amount         Float
+  currency       String        @default("BRL")
+  status         InvoiceStatus @default(PENDING)
+  dueAt          DateTime
+  paidAt         DateTime?
+  stripeId       String?
+  createdAt      DateTime      @default(now())
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("invoices")
+}
+
+enum InvoiceStatus {
+  PENDING
+  PAID
+  FAILED
+  CANCELLED
+}

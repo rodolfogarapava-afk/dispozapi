@@ -1,0 +1,23 @@
+node_modules/
+
+# Configurações locais de ferramentas e credenciais de implantação
+.claude/
+.codex/
+
+# Segredos — nunca commitar
+.env
+.env.*
+!.env.example
+*.bak
+*.bak.*
+
+# Build / gerados
+.next/
+dist/
+.turbo/
+*.log
+.DS_Store
+coverage/
+*.tgz
+*.tsbuildinfo
+apps/apps/

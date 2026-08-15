@@ -1,0 +1,7 @@
+{
+  "buildCommand": "cd ../.. && pnpm install --frozen-lockfile && pnpm --filter @crm/web build",
+  "outputDirectory": ".next",
+  "installCommand": "echo 'handled by buildCommand'",
+  "framework": "nextjs",
+  "regions": ["gru1"]
+}
