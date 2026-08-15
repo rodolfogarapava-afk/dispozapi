@@ -52,7 +52,7 @@ export class ContactService {
   async bulkImport(
     orgId: string,
     rows: Array<{ name?: string; phone?: string; email?: string }>,
-    options: { consentConfirmed?: boolean; consentSource?: string; source?: string; groupList?: { id: string; name: string } } = {},
+    options: { consentConfirmed?: boolean; consentSource?: string; source?: string; groupList?: { id: string; name: string; instanceId?: string } } = {},
   ) {
     if (options.consentConfirmed !== true) {
       throw { statusCode: 400, message: 'Confirme que os contatos autorizaram o recebimento de mensagens' }
@@ -129,46 +129,141 @@ export class ContactService {
     }
 
     const contacts = clean.map((c) => byPhone.get(c.phone)).filter(Boolean) as Array<{ id: string; name: string; phone: string }>
-    return { created: toCreate.length, total: contacts.length, contacts }
+
+    let persistedGroupList: { id: string; name: string; groupJid: string; importedAt: Date } | null = null
+    if (options.groupList) {
+      const groupJid = String(options.groupList.id || '').trim()
+      const groupName = String(options.groupList.name || '').trim()
+      if (groupJid && groupName) {
+        persistedGroupList = await prisma.$transaction(async (tx) => {
+          const list = await tx.groupContactList.upsert({
+            where: { organizationId_groupJid: { organizationId: orgId, groupJid } },
+            update: {
+              name: groupName,
+              instanceId: String(options.groupList?.instanceId || '').trim() || null,
+              importedAt: new Date(),
+            },
+            create: {
+              organizationId: orgId,
+              groupJid,
+              name: groupName,
+              instanceId: String(options.groupList?.instanceId || '').trim() || null,
+            },
+          })
+          if (contacts.length) {
+            await tx.groupContactListMember.createMany({
+              data: contacts.map((contact) => ({ listId: list.id, contactId: contact.id })),
+              skipDuplicates: true,
+            })
+          }
+          return list
+        })
+      }
+    }
+
+    return {
+      created: toCreate.length,
+      total: contacts.length,
+      contacts,
+      groupList: persistedGroupList ? {
+        id: persistedGroupList.id,
+        name: persistedGroupList.name,
+        groupJid: persistedGroupList.groupJid,
+        importedAt: persistedGroupList.importedAt,
+      } : null,
+    }
+  }
+
+  private async backfillLegacyGroupLists(orgId: string) {
+    const rows = await prisma.contact.findMany({
+      where: { organizationId: orgId },
+      select: { id: true, customFields: true, createdAt: true },
+    })
+    const legacyLists = new Map<string, { name: string; importedAt: Date; contactIds: Set<string> }>()
+    for (const contact of rows) {
+      for (const ref of groupRefs(contact.customFields, contact.createdAt)) {
+        const importedAt = new Date(ref.importedAt)
+        const safeImportedAt = Number.isNaN(importedAt.getTime()) ? contact.createdAt : importedAt
+        const list = legacyLists.get(ref.id) || { name: ref.name, importedAt: safeImportedAt, contactIds: new Set<string>() }
+        list.name = ref.name
+        if (safeImportedAt.getTime() > list.importedAt.getTime()) list.importedAt = safeImportedAt
+        list.contactIds.add(contact.id)
+        legacyLists.set(ref.id, list)
+      }
+    }
+    if (!legacyLists.size) return
+
+    await prisma.$transaction(async (tx) => {
+      for (const [groupJid, legacy] of legacyLists) {
+        const list = await tx.groupContactList.upsert({
+          where: { organizationId_groupJid: { organizationId: orgId, groupJid } },
+          update: { name: legacy.name },
+          create: {
+            organizationId: orgId,
+            groupJid,
+            name: legacy.name,
+            importedAt: legacy.importedAt,
+          },
+        })
+        await tx.groupContactListMember.createMany({
+          data: Array.from(legacy.contactIds).map((contactId) => ({ listId: list.id, contactId })),
+          skipDuplicates: true,
+        })
+      }
+    })
   }
 
   async groupLists(orgId: string) {
-    const rows = await prisma.contact.findMany({
+    await this.backfillLegacyGroupLists(orgId)
+    const lists = await prisma.groupContactList.findMany({
       where: { organizationId: orgId },
-      orderBy: { createdAt: 'desc' },
-      select: { id: true, name: true, phone: true, avatar: true, status: true, customFields: true, createdAt: true },
+      orderBy: { importedAt: 'desc' },
+      include: {
+        _count: { select: { members: true } },
+        members: {
+          take: 5,
+          orderBy: { addedAt: 'desc' },
+          select: { contact: { select: { id: true, name: true, phone: true, avatar: true, status: true } } },
+        },
+      },
     })
-    const lists = new Map<string, { id: string; name: string; importedAt: string; contacts: Array<{ id: string; name: string; phone: string; avatar: string | null; status: string }> }>()
-    for (const contact of rows) {
-      for (const ref of groupRefs(contact.customFields, contact.createdAt)) {
-        const list = lists.get(ref.id) || { id: ref.id, name: ref.name, importedAt: ref.importedAt, contacts: [] }
-        list.name = ref.name
-        if (new Date(ref.importedAt).getTime() > new Date(list.importedAt).getTime()) list.importedAt = ref.importedAt
-        list.contacts.push({ id: contact.id, name: contact.name, phone: contact.phone, avatar: contact.avatar, status: contact.status })
-        lists.set(ref.id, list)
-      }
-    }
-    return Array.from(lists.values())
-      .map((list) => ({ ...list, contactCount: list.contacts.length, preview: list.contacts.slice(0, 5), contacts: undefined }))
-      .sort((a, b) => new Date(b.importedAt).getTime() - new Date(a.importedAt).getTime())
+    return lists.map((list) => ({
+      id: list.id,
+      name: list.name,
+      groupJid: list.groupJid,
+      instanceId: list.instanceId,
+      importedAt: list.importedAt,
+      contactCount: list._count.members,
+      preview: list.members.map((member) => member.contact),
+    }))
   }
 
   async groupList(id: string, orgId: string) {
-    const rows = await prisma.contact.findMany({
-      where: { organizationId: orgId },
-      orderBy: { name: 'asc' },
-      select: { id: true, name: true, phone: true, email: true, avatar: true, tags: true, status: true, customFields: true, createdAt: true },
+    await this.backfillLegacyGroupLists(orgId)
+    const list = await prisma.groupContactList.findFirst({
+      where: { organizationId: orgId, OR: [{ id }, { groupJid: id }] },
     })
-    const matched = rows.filter((contact) => groupRefs(contact.customFields, contact.createdAt).some((ref) => ref.id === id))
-    if (!matched.length) throw { statusCode: 404, message: 'Lista de grupo não encontrada' }
-    const reference = groupRefs(matched[0].customFields, matched[0].createdAt).find((ref) => ref.id === id)!
+    if (!list) throw { statusCode: 404, message: 'Lista de grupo não encontrada' }
+    const members = await prisma.groupContactListMember.findMany({
+      where: { listId: list.id, list: { organizationId: orgId } },
+      select: {
+        contact: {
+          select: { id: true, name: true, phone: true, email: true, avatar: true, tags: true, status: true, source: true, createdAt: true },
+        },
+      },
+    })
+    const contacts = members.map((member) => member.contact).sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
     return {
-      id,
-      name: reference.name,
-      contactCount: matched.length,
-      contacts: matched.map(({ customFields: _customFields, ...contact }) => contact),
+      id: list.id,
+      name: list.name,
+      groupJid: list.groupJid,
+      instanceId: list.instanceId,
+      importedAt: list.importedAt,
+      contactCount: contacts.length,
+      contacts,
     }
   }
+
   async findOne(id: string, orgId: string) {
     const c = await prisma.contact.findFirst({ where: { id, organizationId: orgId }, include: { activities: true, deals: { include: { stage: true } } } })
     if (!c) throw { statusCode: 404, message: 'Contato não encontrado' }

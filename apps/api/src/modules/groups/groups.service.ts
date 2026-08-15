@@ -146,7 +146,7 @@ export class GroupsService {
       consentConfirmed: true,
       source: 'WHATSAPP_GROUP',
       consentSource: `Grupo: ${group.subject}`,
-      groupList: { id: group.jid, name: group.subject },
+      groupList: { id: group.jid, name: group.subject, instanceId: String(data.instanceId || '') },
     })
   }
 }
