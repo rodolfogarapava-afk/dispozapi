@@ -239,6 +239,7 @@ export default function ContactsPage() {
       await api.delete(`/contacts/group-lists/${encodeURIComponent(list.id)}`)
       setGroupLists((current) => current.filter((item) => item.id !== list.id))
       setActiveGroup((current) => current?.id === list.id ? null : current)
+      await loadGroupLists()
       toast.success('Lista excluída. Os contatos foram mantidos no CRM.')
     } catch (error) {
       toast.error(errorMessage(error, 'Não foi possível excluir a lista'))

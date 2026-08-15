@@ -27,6 +27,20 @@ function groupRefs(customFields: unknown, createdAt?: Date): GroupListRef[] {
   return [{ id, name, importedAt: String(fields.consentAt || createdAt?.toISOString() || new Date(0).toISOString()) }]
 }
 
+function withoutGroupRef(customFields: unknown, groupJid: string, createdAt?: Date): Record<string, unknown> | null {
+  const fields = (customFields && typeof customFields === 'object' ? customFields : {}) as Record<string, unknown>
+  const refs = groupRefs(fields, createdAt)
+  const remainingRefs = refs.filter((ref) => ref.id !== groupJid)
+  if (remainingRefs.length === refs.length) return null
+
+  const nextFields: Record<string, unknown> = { ...fields, groupLists: remainingRefs }
+  const consentSource = String(nextFields.consentSource || '').trim()
+  if (!remainingRefs.length && consentSource.toLocaleLowerCase('pt-BR').startsWith('grupo:')) {
+    delete nextFields.consentSource
+  }
+  return nextFields
+}
+
 export class ContactService {
   async list(orgId: string, query: any) {
     const { page = 1, limit = 20, search, tags, status } = query
@@ -265,11 +279,31 @@ export class ContactService {
   }
 
   async removeGroupList(id: string, orgId: string) {
-    const removed = await prisma.groupContactList.deleteMany({
-      where: { id, organizationId: orgId },
-    })
-    if (!removed.count) throw { statusCode: 404, message: 'Lista de grupo não encontrada' }
-    return { success: true, id }
+    return prisma.$transaction(async (tx) => {
+      const list = await tx.groupContactList.findFirst({
+        where: { id, organizationId: orgId },
+        include: {
+          members: {
+            select: {
+              contact: { select: { id: true, customFields: true, createdAt: true } },
+            },
+          },
+        },
+      })
+      if (!list) throw { statusCode: 404, message: 'Lista de grupo não encontrada' }
+
+      for (const member of list.members) {
+        const customFields = withoutGroupRef(member.contact.customFields, list.groupJid, member.contact.createdAt)
+        if (!customFields) continue
+        await tx.contact.update({
+          where: { id: member.contact.id },
+          data: { customFields: customFields as any },
+        })
+      }
+
+      await tx.groupContactList.delete({ where: { id: list.id } })
+      return { success: true, id: list.id }
+    }, { maxWait: 5_000, timeout: 30_000 })
   }
 
   async findOne(id: string, orgId: string) {
