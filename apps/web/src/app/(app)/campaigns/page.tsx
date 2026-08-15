@@ -157,6 +157,16 @@ function errorMessage(error: any, fallback: string) {
   return error?.response?.data?.message || error?.message || fallback
 }
 
+function formatDuration(milliseconds: number) {
+  const totalSeconds = Math.max(0, Math.round(milliseconds / 1000))
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
+  if (hours) return `${hours}h${minutes ? ` ${minutes}min` : ''}`
+  if (minutes) return `${minutes}min${seconds ? ` ${seconds}s` : ''}`
+  return `${seconds}s`
+}
+
 export default function CampaignsPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [contacts, setContacts] = useState<Contact[]>([])
@@ -298,6 +308,13 @@ export default function CampaignsPage() {
   const messageReady = Boolean(message.text.trim() || message.attachment)
   const selectedInstance = instances.find((instance) => instance.id === selectedInstanceId)
   const connectedInstances = instances.filter((instance) => instance.status === 'CONNECTED')
+  const cadenceRunContacts = Math.min(selectedContactIds.length || cadence.maxPerRun, cadence.maxPerRun)
+  const cadenceIntervals = Math.max(0, cadenceRunContacts - 1)
+  const cadencePauses = cadence.pauseEvery > 0 && cadence.pauseMs > 0
+    ? Math.floor(cadenceIntervals / cadence.pauseEvery)
+    : 0
+  const cadenceMinimumTime = (cadenceIntervals * cadence.minDelayMs) + (cadencePauses * cadence.pauseMs)
+  const cadenceMaximumTime = (cadenceIntervals * cadence.maxDelayMs) + (cadencePauses * cadence.pauseMs)
 
   const updateCurrentMessage = (patch: Partial<MessageStep>) => {
     setMessage((current) => ({ ...current, ...patch }))
@@ -943,19 +960,51 @@ export default function CampaignsPage() {
         </div>
 
         <div className="border-t border-border bg-[hsl(var(--surface-2))] p-3 sm:p-4">
-          <div className="mb-4 flex items-center gap-2">
-            <Settings2 className="h-4 w-4 text-primary" />
-            <div>
-              <p className="text-xs font-bold text-foreground">Cadência de envio</p>
-              <p className="text-[10px] text-muted-foreground">Intervalos transparentes para respeitar limites operacionais.</p>
+          <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+            <div className="flex items-start gap-2.5">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary"><Settings2 className="h-4 w-4" /></span>
+              <div>
+                <p className="text-sm font-bold text-foreground">Ritmo dos disparos</p>
+                <p className="mt-0.5 text-[11px] text-muted-foreground">Escolha quanto esperar entre os contatos e quando fazer uma pausa.</p>
+              </div>
+            </div>
+            <button type="button" onClick={() => setCadence(DEFAULT_CADENCE)} className="rounded-lg border border-border px-3 py-1.5 text-[10px] font-semibold text-muted-foreground transition hover:bg-accent hover:text-foreground">Restaurar padrão</button>
+          </div>
+
+          <div className="mb-4 rounded-xl border border-primary/20 bg-primary/[0.06] p-3 sm:p-4">
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary">Como esta configuração funciona</p>
+            <div className="mt-3 grid gap-3 text-[11px] leading-5 text-muted-foreground md:grid-cols-3">
+              <p><strong className="block text-xs text-foreground">1. Envia para um contato</strong>Depois, espera entre <span className="font-bold text-primary">{cadence.minDelayMs / 1000} e {cadence.maxDelayMs / 1000} segundos</span> antes do próximo.</p>
+              <p><strong className="block text-xs text-foreground">2. Faz uma pausa maior</strong>{cadence.pauseEvery > 0 && cadence.pauseMs > 0 ? <>Depois de cada <span className="font-bold text-primary">{cadence.pauseEvery} contatos</span>, pausa por <span className="font-bold text-primary">{formatDuration(cadence.pauseMs)}</span>.</> : 'A pausa automática está desativada.'}</p>
+              <p><strong className="block text-xs text-foreground">3. Encerra a rodada</strong>Envia no máximo <span className="font-bold text-primary">{cadence.maxPerRun} contatos</span>. Se restarem contatos, a campanha ficará pausada para você continuar.</p>
+            </div>
+            <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-primary/10 pt-3 text-[10px] text-muted-foreground">
+              <Clock3 className="h-3.5 w-3.5 text-primary" />
+              <span>Estimativa para {cadenceRunContacts} {cadenceRunContacts === 1 ? 'contato' : 'contatos'}:</span>
+              <strong className="text-foreground">{cadenceRunContacts <= 1 ? 'envio imediato' : `${formatDuration(cadenceMinimumTime)} a ${formatDuration(cadenceMaximumTime)}`}</strong>
+              {!selectedContactIds.length ? <span className="text-muted-foreground/70">(exemplo de uma rodada completa)</span> : null}
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-5 xl:gap-3">
-            <CadenceField label="Intervalo mínimo" suffix="s" value={cadence.minDelayMs / 1000} min={5} onChange={(value) => setCadence((current) => ({ ...current, minDelayMs: value * 1000, maxDelayMs: Math.max(current.maxDelayMs, value * 1000) }))} />
-            <CadenceField label="Intervalo máximo" suffix="s" value={cadence.maxDelayMs / 1000} min={Math.max(5, cadence.minDelayMs / 1000)} onChange={(value) => setCadence((current) => ({ ...current, maxDelayMs: value * 1000 }))} />
-            <CadenceField label="Pausa a cada" suffix="msgs" value={cadence.pauseEvery} min={0} onChange={(value) => setCadence((current) => ({ ...current, pauseEvery: value }))} />
-            <CadenceField label="Duração da pausa" suffix="s" value={cadence.pauseMs / 1000} min={0} onChange={(value) => setCadence((current) => ({ ...current, pauseMs: value * 1000 }))} />
-            <CadenceField label="Máximo por lote" suffix="contatos" value={cadence.maxPerRun} min={1} onChange={(value) => setCadence((current) => ({ ...current, maxPerRun: value }))} />
+
+          <div className="grid gap-3 lg:grid-cols-3">
+            <div className="rounded-xl border border-border bg-[hsl(var(--surface-1))] p-3">
+              <div className="mb-3"><p className="text-xs font-bold text-foreground">Tempo entre contatos</p><p className="mt-0.5 text-[10px] text-muted-foreground">O sistema sorteia um tempo dentro deste intervalo.</p></div>
+              <div className="grid grid-cols-2 gap-2">
+                <CadenceField label="Esperar pelo menos" suffix="segundos" value={cadence.minDelayMs / 1000} min={5} onChange={(value) => setCadence((current) => ({ ...current, minDelayMs: value * 1000, maxDelayMs: Math.max(current.maxDelayMs, value * 1000) }))} />
+                <CadenceField label="Esperar no máximo" suffix="segundos" value={cadence.maxDelayMs / 1000} min={Math.max(5, cadence.minDelayMs / 1000)} onChange={(value) => setCadence((current) => ({ ...current, maxDelayMs: value * 1000 }))} />
+              </div>
+            </div>
+            <div className="rounded-xl border border-border bg-[hsl(var(--surface-1))] p-3">
+              <div className="mb-3"><p className="text-xs font-bold text-foreground">Pausa automática</p><p className="mt-0.5 text-[10px] text-muted-foreground">Use zero para desativar essa pausa extra.</p></div>
+              <div className="grid grid-cols-2 gap-2">
+                <CadenceField label="Pausar depois de" suffix="contatos" value={cadence.pauseEvery} min={0} onChange={(value) => setCadence((current) => ({ ...current, pauseEvery: value }))} />
+                <CadenceField label="Pausar durante" suffix="minutos" value={cadence.pauseMs / 60000} min={0} step={0.5} onChange={(value) => setCadence((current) => ({ ...current, pauseMs: value * 60000 }))} />
+              </div>
+            </div>
+            <div className="rounded-xl border border-border bg-[hsl(var(--surface-1))] p-3">
+              <div className="mb-3"><p className="text-xs font-bold text-foreground">Tamanho da rodada</p><p className="mt-0.5 text-[10px] text-muted-foreground">Ao atingir o limite, você poderá continuar a campanha depois.</p></div>
+              <CadenceField label="Encerrar a rodada após" suffix="contatos" value={cadence.maxPerRun} min={1} onChange={(value) => setCadence((current) => ({ ...current, maxPerRun: value }))} />
+            </div>
           </div>
         </div>
 
@@ -1098,12 +1147,13 @@ function ToolbarButton({ label, onClick, children }: { label: string; onClick: (
   return <button type="button" aria-label={label} title={label} onClick={onClick} className="rounded-lg p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground">{children}</button>
 }
 
-function CadenceField({ label, suffix, value, min, onChange }: { label: string; suffix: string; value: number; min: number; onChange: (value: number) => void }) {
+function CadenceField({ label, suffix, value, min, step = 1, onChange }: { label: string; suffix: string; value: number; min: number; step?: number; onChange: (value: number) => void }) {
+  const displayValue = Number.isInteger(value) ? value : Number(value.toFixed(1))
   return (
-    <label className="rounded-xl border border-border bg-[hsl(var(--surface-1))] px-3 py-2">
+    <label className="block rounded-xl border border-border bg-[hsl(var(--surface-2))] px-3 py-2.5 transition focus-within:border-primary/40 focus-within:ring-2 focus-within:ring-primary/10">
       <span className="block text-[10px] font-medium text-muted-foreground">{label}</span>
       <span className="mt-1 flex items-center gap-1.5">
-        <input type="number" min={min} value={Math.round(value)} onChange={(event) => onChange(Math.max(min, Number(event.target.value) || min))} className="min-w-0 flex-1 bg-transparent text-sm font-bold text-foreground outline-none" />
+        <input type="number" min={min} step={step} value={displayValue} onChange={(event) => onChange(Math.max(min, Number(event.target.value) || min))} className="min-w-0 flex-1 bg-transparent text-base font-bold text-foreground outline-none" />
         <span className="text-[10px] text-muted-foreground">{suffix}</span>
       </span>
     </label>
