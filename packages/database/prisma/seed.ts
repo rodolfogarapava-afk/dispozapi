@@ -4,24 +4,24 @@ import bcrypt from 'bcryptjs'
 const prisma = new PrismaClient()
 
 async function main() {
-  console.log('🌱 Iniciando seed do ZapShark...')
+  console.log('🌱 Iniciando seed do DisparoX...')
 
   // Organização demo
   const org = await prisma.organization.upsert({
-    where: { slug: 'zapshark-demo' },
+    where: { slug: 'disparox-demo' },
     update: {},
-    create: { name: 'ZapShark Demo', slug: 'zapshark-demo', plan: 'PRO' }
+    create: { name: 'DisparoX Demo', slug: 'disparox-demo', plan: 'PRO' }
   })
   console.log('✅ Organização criada:', org.name)
 
   // Usuário admin
   const password = await bcrypt.hash('demo123456', 12)
   const user = await prisma.user.upsert({
-    where: { email: 'demo@zapshark.com' },
+    where: { email: 'demo@disparox.local' },
     update: {},
     create: {
       name: 'Admin Demo',
-      email: 'demo@zapshark.com',
+      email: 'demo@disparox.local',
       password,
       role: 'OWNER',
       organizationId: org.id,
@@ -91,7 +91,7 @@ async function main() {
 
   console.log('\n🎉 Seed concluído com sucesso!')
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-  console.log('📧 Email:  demo@zapshark.com')
+  console.log('📧 Email:  demo@disparox.local')
   console.log('🔑 Senha:  demo123456')
   console.log('🌐 App:    http://localhost:3000')
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 echo ""
-echo "🦈 ZapShark — Iniciando ambiente local..."
+echo "DisparoX — Iniciando ambiente local..."
 echo ""
 
 # Verifica Docker
@@ -46,7 +46,7 @@ echo "  Backend  → http://localhost:3001"
 echo "  API Docs → http://localhost:3001/docs"
 echo "  WhatsApp → http://localhost:8080"
 echo ""
-echo "  Login: demo@zapshark.com / demo123456"
+echo "  Login: demo@disparox.local / demo123456"
 echo ""
 
 pnpm dev

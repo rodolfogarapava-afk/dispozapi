@@ -39,10 +39,9 @@ export default function LandingPage() {
         style={{ background: scrolled ? 'rgba(9,14,20,0.85)' : 'transparent', backdropFilter: scrolled ? 'blur(12px)' : 'none', borderBottom: scrolled ? '1px solid rgba(255,255,255,0.06)' : '1px solid transparent' }}>
         <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <img src="/logo.png" alt="ZapShark" className="w-9 h-9 object-contain" style={{ filter: `drop-shadow(0 0 12px ${BLUE}60)` }} />
+            <img src="/logo.png" alt="DisparoX" className="w-9 h-9 object-contain" style={{ filter: `drop-shadow(0 0 12px ${BLUE}60)` }} />
             <div className="leading-none">
-              <span className="text-lg font-bold tracking-tight">ZapShark</span>
-              <p className="text-[8px] font-semibold tracking-[0.2em] mt-0.5" style={{ color: BLUE }}>MULTI-ATENDIMENTO</p>
+              <span className="text-lg font-bold tracking-tight">DisparoX</span>
             </div>
           </div>
           <nav className="hidden md:flex items-center gap-7 text-sm text-white/70">
@@ -103,7 +102,7 @@ export default function LandingPage() {
                   <span className="w-2.5 h-2.5 rounded-full bg-red-400/70" />
                   <span className="w-2.5 h-2.5 rounded-full bg-yellow-400/70" />
                   <span className="w-2.5 h-2.5 rounded-full bg-green-400/70" />
-                  <span className="ml-3 text-[11px] text-white/40">app.zapshark.site/pipeline</span>
+                  <span className="ml-3 text-[11px] text-white/40">app.disparox.com/pipeline</span>
                 </div>
                 {/* mini-pipeline fake */}
                 <div className="grid grid-cols-4 gap-2 p-4">
@@ -281,7 +280,7 @@ export default function LandingPage() {
         <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 50% 60% at 50% 50%, #00AEEF18, transparent 70%)' }} />
         <div className="relative max-w-6xl mx-auto text-center">
           <div className="reveal inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium mb-6 lp-glass">
-            <Star className="w-3.5 h-3.5" style={{ color: BLUE }} /> Planos ZapShark
+            <Star className="w-3.5 h-3.5" style={{ color: BLUE }} /> Planos DisparoX
           </div>
           <h2 className="reveal text-4xl sm:text-5xl font-bold mb-5 leading-tight" style={{ transitionDelay: '60ms' }}>
             Escolha a capacidade da sua <span className="lp-gradient-text">operação</span>
@@ -323,7 +322,7 @@ export default function LandingPage() {
                   href="/auth/login"
                   className={`group mt-auto inline-flex items-center justify-center gap-2 rounded-xl border px-5 py-3 text-sm font-bold transition ${plan.featured ? 'border-violet-400/60 bg-violet-500/20 text-white hover:bg-violet-500/30' : 'border-white/15 bg-white/[0.03] text-white hover:border-primary/50 hover:bg-primary/10'}`}
                 >
-                  Escolher {plan.name.replace('Shark ', '')}
+                  Escolher {plan.name.replace('DisparoX ', '')}
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Link>
               </article>
@@ -340,16 +339,15 @@ export default function LandingPage() {
       <footer className="border-t border-white/5 px-5 py-10">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
-            <img src="/logo.png" alt="ZapShark" className="w-7 h-7 object-contain" />
-            <span className="font-bold">ZapShark</span>
-            <span className="text-xs text-white/40">· Multi-atendimento com IA</span>
+            <img src="/logo.png" alt="DisparoX" className="w-7 h-7 object-contain" />
+            <span className="font-bold">DisparoX</span>
           </div>
           <div className="flex items-center gap-6 text-sm text-white/50">
             <Link href="/auth/login" className="hover:text-white transition">Entrar</Link>
             <a href="#recursos" className="hover:text-white transition">Recursos</a>
             <a href="#precos" className="hover:text-white transition">Acesso</a>
           </div>
-          <p className="text-xs text-white/30">© {new Date().getFullYear()} ZapShark</p>
+          <p className="text-xs text-white/30">© {new Date().getFullYear()} DisparoX</p>
         </div>
       </footer>
     </div>
@@ -376,7 +374,7 @@ const PLAN_FEATURES = {
     'Personalização de mensagem por nome',
   ],
   PRO: [
-    'Tudo do Shark Essencial',
+    'Tudo do DisparoX Essencial',
     'Até 5 instâncias do WhatsApp',
     'Até 3 campanhas ativas ao mesmo tempo',
     'Até 15 usuários na equipe',
@@ -384,7 +382,7 @@ const PLAN_FEATURES = {
     'Listas do CRM, grupos e arquivos CSV',
   ],
   ENTERPRISE: [
-    'Tudo do Shark Pro',
+    'Tudo do DisparoX Pro',
     'Até 10 instâncias do WhatsApp',
     'Até 10 campanhas ativas ao mesmo tempo',
     'Até 50 usuários na equipe',

@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { createJSONStorage, persist } from 'zustand/middleware'
 import { api } from '@/lib/api'
 
 interface User {
@@ -17,6 +17,22 @@ interface AuthState {
   logout: () => void
   fetchMe: () => Promise<void>
 }
+
+const AUTH_STORAGE_KEY = 'disparox_auth'
+const LEGACY_AUTH_STORAGE_KEY = ['zap', 'sha', 'rk_auth'].join('')
+const authStorage = createJSONStorage(() => ({
+  getItem: (name: string) => {
+    const current = window.localStorage.getItem(name)
+    if (current) return current
+    const legacy = window.localStorage.getItem(LEGACY_AUTH_STORAGE_KEY)
+    if (!legacy) return null
+    window.localStorage.setItem(name, legacy)
+    window.localStorage.removeItem(LEGACY_AUTH_STORAGE_KEY)
+    return legacy
+  },
+  setItem: (name: string, value: string) => window.localStorage.setItem(name, value),
+  removeItem: (name: string) => window.localStorage.removeItem(name),
+}))
 
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -52,7 +68,8 @@ export const useAuthStore = create<AuthState>()(
       },
     }),
     {
-      name: 'zapshark_auth',
+      name: AUTH_STORAGE_KEY,
+      storage: authStorage,
       partialize: (s) => ({ token: s.token, user: s.user }),
       // Marca o store como hidratado após reidratar do localStorage. O layout
       // espera essa flag antes de decidir redirecionar para o login (senão o

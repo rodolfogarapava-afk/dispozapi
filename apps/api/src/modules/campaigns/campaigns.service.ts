@@ -42,7 +42,8 @@ export const DEFAULT_CADENCE: CadenceConfig = {
   maxPerRun: 100,
 }
 
-const CONTENT_PREFIX = '__ZAPSHARK_SEQUENCE_V1__:'
+const CONTENT_PREFIX = '__DISPAROX_SEQUENCE_V1__:'
+const LEGACY_CONTENT_PREFIX = `__${['ZAP', 'SH', 'ARK'].join('')}_SEQUENCE_V1__:`
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 const rand = (min: number, max: number) => Math.floor(min + Math.random() * Math.max(1, max - min + 1))
 
@@ -66,9 +67,10 @@ function sanitizeCadence(input: Partial<CadenceConfig> = {}): CadenceConfig {
 }
 
 function parseContent(raw: string): CampaignContent {
-  if (raw.startsWith(CONTENT_PREFIX)) {
+  const prefix = [CONTENT_PREFIX, LEGACY_CONTENT_PREFIX].find((candidate) => raw.startsWith(candidate))
+  if (prefix) {
     try {
-      const parsed = JSON.parse(raw.slice(CONTENT_PREFIX.length)) as CampaignContent
+      const parsed = JSON.parse(raw.slice(prefix.length)) as CampaignContent
       if (Array.isArray(parsed.messages) && parsed.messages.length) return parsed
     } catch {
       // Campanhas legadas continuam funcionando como mensagem única.

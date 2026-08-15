@@ -6,20 +6,20 @@ async function main() {
   console.log('Iniciando seed...')
 
   const org = await prisma.organization.upsert({
-    where: { slug: 'zapshark-demo' },
+    where: { slug: 'disparox-demo' },
     update: {},
-    create: { name: 'ZapShark Demo', slug: 'zapshark-demo', plan: 'PRO' }
+    create: { name: 'DisparoX Demo', slug: 'disparox-demo', plan: 'PRO' }
   })
 
   const hash = await bcrypt.hash('demo123456', 12)
   await prisma.user.upsert({
-    where: { email: 'demo@zapshark.com' },
+    where: { email: 'demo@disparox.local' },
     update: {},
-    create: { name: 'Admin Demo', email: 'demo@zapshark.com', password: hash, role: 'OWNER', organizationId: org.id, emailVerified: true }
+    create: { name: 'Admin Demo', email: 'demo@disparox.local', password: hash, role: 'OWNER', organizationId: org.id, emailVerified: true }
   })
 
   console.log('Seed concluido!')
-  console.log('Email: demo@zapshark.com')
+  console.log('Email: demo@disparox.local')
   console.log('Senha: demo123456')
 }
 

@@ -20,7 +20,7 @@ export const PLAN_DEFINITIONS: Record<PlanCode, PlanDefinition> = {
   },
   STARTER: {
     code: 'STARTER',
-    name: 'Shark Essencial',
+    name: 'DisparoX Essencial',
     price: 97,
     maxInstances: 3,
     maxActiveCampaigns: 1,
@@ -28,7 +28,7 @@ export const PLAN_DEFINITIONS: Record<PlanCode, PlanDefinition> = {
   },
   PRO: {
     code: 'PRO',
-    name: 'Shark Pro',
+    name: 'DisparoX Pro',
     price: 147,
     maxInstances: 5,
     maxActiveCampaigns: 3,
@@ -36,7 +36,7 @@ export const PLAN_DEFINITIONS: Record<PlanCode, PlanDefinition> = {
   },
   ENTERPRISE: {
     code: 'ENTERPRISE',
-    name: 'Shark Black',
+    name: 'DisparoX Black',
     price: 247,
     maxInstances: 10,
     maxActiveCampaigns: 10,

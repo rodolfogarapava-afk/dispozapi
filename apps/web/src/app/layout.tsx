@@ -5,8 +5,8 @@ import { Toaster } from 'react-hot-toast'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: { default: 'ZapShark', template: '%s | ZapShark' },
-  description: 'Multi-atendimento WhatsApp com CRM completo',
+  title: { default: 'DisparoX', template: '%s | DisparoX' },
+  description: 'Disparos e atendimento WhatsApp com CRM completo',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

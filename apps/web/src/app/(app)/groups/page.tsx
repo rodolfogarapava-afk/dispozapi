@@ -343,7 +343,7 @@ export default function GroupsPage() {
                           : 'Nenhum telefone foi disponibilizado neste grupo'}
                       </p>
                       <p className="mt-1 text-[10px] leading-4 text-muted-foreground">
-                        O WhatsApp retornou somente um identificador interno (LID) para esses participantes, sem revelar o telefone. Isso varia conforme o grupo e a conta conectada; o ZapShark não consegue converter nem contornar essa proteção.
+                        O WhatsApp retornou somente um identificador interno (LID) para esses participantes, sem revelar o telefone. Isso varia conforme o grupo e a conta conectada; o DisparoX não consegue converter nem contornar essa proteção.
                       </p>
                       <div className="mt-2 flex flex-wrap gap-2 text-[9px] font-semibold">
                         <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-emerald-300">{importableParticipants.length} disponíveis</span>

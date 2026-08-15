@@ -4,7 +4,7 @@ import ws from '../node_modules/.pnpm/ws@8.18.3/node_modules/ws/index.js'
 
 const { WebSocketServer } = ws
 const now = () => new Date().toISOString()
-const EVOLUTION_PREFIX = 'zapshark_local_'
+const EVOLUTION_PREFIX = 'disparox_local_'
 
 function loadEnv(file) {
   const values = {}
@@ -383,7 +383,7 @@ let chatbot = {
   config: {
     persona: 'Você é um atendente cordial e objetivo.',
     instructions: 'Responda com clareza e encaminhe para uma pessoa quando necessário.',
-    knowledge: 'Ambiente local de demonstração do ZapShark.',
+    knowledge: 'Ambiente local de demonstração do DisparoX.',
     greeting: 'Olá! Como posso ajudar?', fallback: 'Vou chamar um atendente para ajudar.',
     temperature: 0.4, maxTokens: 500, historyLimit: 12,
     humanize: false, readDelayMinMs: 0, readDelayMaxMs: 0,

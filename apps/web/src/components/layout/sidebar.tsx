@@ -46,11 +46,10 @@ export function Sidebar() {
   const renderContent = (collapsed: boolean, mobile = false) => (
     <>
       <div className={cn('relative flex h-[76px] items-center border-b border-border transition-all', collapsed ? 'justify-center px-2' : 'gap-2.5 px-5')}>
-        <Image src="/logo.png" alt="ZapShark" width={38} height={38} priority className="h-9 w-9 shrink-0 object-contain" />
+        <Image src="/logo.png" alt="DisparoX" width={38} height={38} priority className="h-9 w-9 shrink-0 object-contain" />
         {!collapsed ? (
           <div className="min-w-0">
-            <p className="truncate text-sm font-bold tracking-tight text-foreground">ZapShark</p>
-            <p className="truncate text-[9px] font-semibold tracking-[0.12em] text-primary">MULTI-ATENDIMENTO</p>
+            <p className="truncate text-sm font-bold tracking-tight text-foreground">DisparoX</p>
           </div>
         ) : null}
 

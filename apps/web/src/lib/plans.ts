@@ -12,9 +12,9 @@ export interface PlanDefinition {
 
 export const PLANS: Record<PlanCode, PlanDefinition> = {
   FREE: { code: 'FREE', name: 'Teste interno', price: 0, maxInstances: 1, maxActiveCampaigns: 1, maxTeamUsers: 2 },
-  STARTER: { code: 'STARTER', name: 'Shark Essencial', price: 97, maxInstances: 3, maxActiveCampaigns: 1, maxTeamUsers: 5 },
-  PRO: { code: 'PRO', name: 'Shark Pro', price: 147, maxInstances: 5, maxActiveCampaigns: 3, maxTeamUsers: 15, featured: true },
-  ENTERPRISE: { code: 'ENTERPRISE', name: 'Shark Black', price: 247, maxInstances: 10, maxActiveCampaigns: 10, maxTeamUsers: 50 },
+  STARTER: { code: 'STARTER', name: 'DisparoX Essencial', price: 97, maxInstances: 3, maxActiveCampaigns: 1, maxTeamUsers: 5 },
+  PRO: { code: 'PRO', name: 'DisparoX Pro', price: 147, maxInstances: 5, maxActiveCampaigns: 3, maxTeamUsers: 15, featured: true },
+  ENTERPRISE: { code: 'ENTERPRISE', name: 'DisparoX Black', price: 247, maxInstances: 10, maxActiveCampaigns: 10, maxTeamUsers: 50 },
 }
 
 export const PUBLIC_PLANS = [PLANS.STARTER, PLANS.PRO, PLANS.ENTERPRISE]
