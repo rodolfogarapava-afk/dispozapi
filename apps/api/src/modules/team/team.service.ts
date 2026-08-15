@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
+import { getPlanDefinition, planLimitMessage } from '../../common/plan-limits'
 const prisma = new PrismaClient()
 
 const ROLES = ['OWNER', 'ADMIN', 'MANAGER', 'MEMBER']
@@ -31,6 +32,15 @@ export class TeamService {
     if (data.password.length < 6) throw { statusCode: 400, message: 'Senha deve ter ao menos 6 caracteres' }
     const exists = await prisma.user.findUnique({ where: { email: data.email } })
     if (exists) throw { statusCode: 400, message: 'Email já cadastrado' }
+    const [organization, activeUsers] = await Promise.all([
+      prisma.organization.findUnique({ where: { id: orgId }, select: { plan: true } }),
+      prisma.user.count({ where: { organizationId: orgId, active: true } }),
+    ])
+    if (!organization) throw { statusCode: 404, message: 'Organização não encontrada' }
+    const plan = getPlanDefinition(organization.plan)
+    if (activeUsers >= plan.maxTeamUsers) {
+      throw { statusCode: 403, message: planLimitMessage(plan, 'usuários ativos na equipe', plan.maxTeamUsers) }
+    }
     const newRole = ROLES.includes(data.role || '') && data.role !== 'OWNER' ? data.role! : 'MEMBER'
     const hashed = await bcrypt.hash(data.password, 12)
     return prisma.user.create({
@@ -48,6 +58,17 @@ export class TeamService {
       throw { statusCode: 400, message: 'Não é possível rebaixar o dono da conta' }
     if (target.role === 'OWNER' && data.active === false)
       throw { statusCode: 400, message: 'Não é possível desativar o dono da conta' }
+    if (data.active === true && !target.active) {
+      const [organization, activeUsers] = await Promise.all([
+        prisma.organization.findUnique({ where: { id: orgId }, select: { plan: true } }),
+        prisma.user.count({ where: { organizationId: orgId, active: true } }),
+      ])
+      if (!organization) throw { statusCode: 404, message: 'Organização não encontrada' }
+      const plan = getPlanDefinition(organization.plan)
+      if (activeUsers >= plan.maxTeamUsers) {
+        throw { statusCode: 403, message: planLimitMessage(plan, 'usuários ativos na equipe', plan.maxTeamUsers) }
+      }
+    }
     return prisma.user.update({
       where: { id },
       data: {

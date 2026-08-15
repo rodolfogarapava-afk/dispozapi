@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client'
 import { WhatsappService } from '../whatsapp/whatsapp.service'
 import { emitToOrg } from '../../common/ws-connections'
 import { readMediaBase64, storeBuffer } from '../whatsapp/media.util'
+import { getPlanDefinition, planLimitMessage } from '../../common/plan-limits'
 
 const prisma = new PrismaClient()
 const whatsapp = new WhatsappService()
@@ -235,6 +236,16 @@ export class CampaignService {
   async start(id: string, orgId: string, overrides?: Partial<CadenceConfig>, requestedInstanceId?: string) {
     const campaign = await this.get(id, orgId)
     if (running.has(id)) throw { statusCode: 400, message: 'Campanha já está em execução' }
+
+    const [organization, activeCampaigns] = await Promise.all([
+      prisma.organization.findUnique({ where: { id: orgId }, select: { plan: true } }),
+      prisma.campaign.count({ where: { organizationId: orgId, status: 'RUNNING', id: { not: id } } }),
+    ])
+    if (!organization) throw { statusCode: 404, message: 'Organização não encontrada' }
+    const plan = getPlanDefinition(organization.plan)
+    if (activeCampaigns >= plan.maxActiveCampaigns) {
+      throw { statusCode: 403, message: planLimitMessage(plan, 'campanhas ativas ao mesmo tempo', plan.maxActiveCampaigns) }
+    }
 
     const stored = await prisma.campaign.findUnique({ where: { id }, select: { message: true } })
     const content = parseContent(stored!.message)

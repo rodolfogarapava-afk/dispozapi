@@ -5,6 +5,7 @@ import {
   Bot, GitBranch, UserCheck, RefreshCw, Megaphone, BarChart3, Sparkles,
   Check, ArrowRight, Zap, Shield, Clock, MessageSquare, Settings2, TrendingUp, Star,
 } from 'lucide-react'
+import { PUBLIC_PLANS, formatPlanPrice } from '@/lib/plans'
 
 const BLUE = '#00AEEF'
 const BLUE2 = '#0A84FF'
@@ -47,7 +48,7 @@ export default function LandingPage() {
           <nav className="hidden md:flex items-center gap-7 text-sm text-white/70">
             <a href="#recursos" className="hover:text-white transition">Recursos</a>
             <a href="#como" className="hover:text-white transition">Como funciona</a>
-            <a href="#precos" className="hover:text-white transition">Acesso</a>
+            <a href="#precos" className="hover:text-white transition">Planos</a>
           </nav>
           <div className="flex items-center gap-2">
             <Link href="/auth/login" className="hidden sm:block text-sm text-white/70 hover:text-white transition px-3 py-2">Entrar</Link>
@@ -275,46 +276,61 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ===== CTA / PREÇO ===== */}
+      {/* ===== PLANOS ===== */}
       <section id="precos" className="relative px-5 py-28">
         <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 50% 60% at 50% 50%, #00AEEF18, transparent 70%)' }} />
-        <div className="relative max-w-2xl mx-auto text-center">
+        <div className="relative max-w-6xl mx-auto text-center">
           <div className="reveal inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium mb-6 lp-glass">
-            <Star className="w-3.5 h-3.5" style={{ color: BLUE }} /> Oferta de lançamento
+            <Star className="w-3.5 h-3.5" style={{ color: BLUE }} /> Planos ZapShark
           </div>
           <h2 className="reveal text-4xl sm:text-5xl font-bold mb-5 leading-tight" style={{ transitionDelay: '60ms' }}>
-            Acesso <span className="lp-gradient-text">controlado</span>
+            Escolha a capacidade da sua <span className="lp-gradient-text">operação</span>
           </h2>
-          <p className="reveal text-white/60 mb-9 max-w-lg mx-auto" style={{ transitionDelay: '120ms' }}>
-            As contas são criadas exclusivamente pelo administrador. Se sua conta já foi
-            liberada, use as credenciais recebidas para entrar.
+          <p className="reveal text-white/60 mb-12 max-w-2xl mx-auto" style={{ transitionDelay: '120ms' }}>
+            As mesmas ferramentas em todos os planos. O que muda é a quantidade de instâncias,
+            campanhas simultâneas e acessos da equipe.
           </p>
 
-          <div className="reveal rounded-2xl lp-glass p-8 mb-8 text-left" style={{ transitionDelay: '160ms' }}>
-            <p className="text-sm font-semibold mb-4 text-center">Recursos incluídos no acesso:</p>
-            <div className="grid sm:grid-cols-2 gap-3">
-              {[
-                'Atendimento multi-WhatsApp', 'Pipeline automática com IA',
-                'Detecção de humano', 'Reavaliação do funil em 1 clique',
-                'Campanhas de disparo em massa', 'Anti-spam configurável',
-                'Relatórios completos', 'Equipe e permissões',
-              ].map((b) => (
-                <div key={b} className="flex items-center gap-2.5">
-                  <span className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#10B98120' }}>
-                    <Check className="w-3 h-3" style={{ color: '#10B981' }} />
-                  </span>
-                  <span className="text-sm text-white/75">{b}</span>
+          <div className="grid gap-5 text-left lg:grid-cols-3">
+            {PUBLIC_PLANS.map((plan, index) => (
+              <article
+                key={plan.code}
+                className={`reveal relative flex min-h-[510px] flex-col overflow-hidden rounded-[26px] border p-7 transition duration-300 hover:-translate-y-1 ${plan.featured ? 'border-violet-500/70' : 'border-white/10'}`}
+                style={{
+                  background: plan.featured ? 'linear-gradient(145deg, rgba(83,45,130,.30), hsl(220 28% 8%) 52%)' : 'hsl(220 28% 8%)',
+                  boxShadow: plan.featured ? '0 24px 70px -30px rgba(139,92,246,.75)' : '0 20px 55px -40px rgba(0,0,0,.9)',
+                  transitionDelay: `${160 + index * 70}ms`,
+                }}
+              >
+                {plan.featured ? (
+                  <span className="absolute right-6 top-6 rounded-full border border-violet-400/30 bg-violet-500/20 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-violet-200">Mais escolhido</span>
+                ) : null}
+                <p className="text-lg font-bold text-white">{plan.name}</p>
+                <div className="mt-7 flex items-end gap-2">
+                  <strong className="text-5xl font-bold tracking-tight text-white">{formatPlanPrice(plan.price)}</strong>
+                  <span className="pb-1 text-sm text-white/45">/mês</span>
                 </div>
-              ))}
-            </div>
+                <div className="my-7 h-px bg-white/[0.07]" />
+                <ul className="space-y-3.5">
+                  {PLAN_FEATURES[plan.code].map((feature) => (
+                    <li key={feature} className="flex items-start gap-3 text-sm leading-5 text-white/70">
+                      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-violet-500/20 text-violet-300"><Check className="h-3 w-3" /></span>
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Link
+                  href="/auth/login"
+                  className={`group mt-auto inline-flex items-center justify-center gap-2 rounded-xl border px-5 py-3 text-sm font-bold transition ${plan.featured ? 'border-violet-400/60 bg-violet-500/20 text-white hover:bg-violet-500/30' : 'border-white/15 bg-white/[0.03] text-white hover:border-primary/50 hover:bg-primary/10'}`}
+                >
+                  Escolher {plan.name.replace('Shark ', '')}
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Link>
+              </article>
+            ))}
           </div>
 
-          <a href="/auth/login" className="reveal group inline-flex items-center gap-2 px-8 py-4 rounded-xl text-base font-semibold text-white transition-all"
-            style={{ background: `linear-gradient(135deg, ${BLUE}, ${BLUE2})`, boxShadow: `0 0 40px ${BLUE}50`, transitionDelay: '200ms' }}>
-            Entrar na plataforma
-            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-          </a>
-          <p className="reveal text-xs text-white/40 mt-4 flex items-center justify-center gap-1.5" style={{ transitionDelay: '240ms' }}>
+          <p className="reveal text-xs text-white/40 mt-8 flex items-center justify-center gap-1.5" style={{ transitionDelay: '240ms' }}>
             <Shield className="w-3.5 h-3.5" /> Cadastro realizado somente pelo administrador
           </p>
         </div>
@@ -348,3 +364,31 @@ const FEATURES = [
   { icon: Shield, color: '#EF4444', title: 'Anti-spam configurável', desc: 'Intervalos aleatórios entre envios, pausas automáticas e limites — pré-ativados para proteger seu número, e ajustáveis.', tags: ['Pré-ativado', 'Seguro'] },
   { icon: BarChart3, color: '#0A84FF', title: 'Relatórios completos', desc: 'Vendas, receita, ticket médio, funil de conversão e ranking de atendentes. Tudo que aconteceu, em números claros.', tags: ['Tempo real'] },
 ]
+
+const PLAN_FEATURES = {
+  FREE: [],
+  STARTER: [
+    'Até 3 instâncias do WhatsApp',
+    '1 campanha ativa por vez',
+    'Até 5 usuários na equipe',
+    'Conversas, contatos e anexos',
+    'Localizador e extração de grupos',
+    'Personalização de mensagem por nome',
+  ],
+  PRO: [
+    'Tudo do Shark Essencial',
+    'Até 5 instâncias do WhatsApp',
+    'Até 3 campanhas ativas ao mesmo tempo',
+    'Até 15 usuários na equipe',
+    'Fluxos de atendimento automatizados',
+    'Listas do CRM, grupos e arquivos CSV',
+  ],
+  ENTERPRISE: [
+    'Tudo do Shark Pro',
+    'Até 10 instâncias do WhatsApp',
+    'Até 10 campanhas ativas ao mesmo tempo',
+    'Até 50 usuários na equipe',
+    'Maior capacidade operacional',
+    'Todas as ferramentas atuais da plataforma',
+  ],
+} as const

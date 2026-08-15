@@ -12,6 +12,8 @@ import { PageHeader } from '@/components/layout/page-header'
 import { api } from '@/lib/api'
 import { wsClient } from '@/lib/ws'
 import { cn } from '@/lib/utils'
+import { getPlan } from '@/lib/plans'
+import { useAuthStore } from '@/store/auth.store'
 
 interface WhatsappInstance {
   id: string
@@ -63,6 +65,8 @@ function qrSource(value: string) {
 }
 
 export default function InstancesPage() {
+  const user = useAuthStore((state) => state.user)
+  const plan = getPlan(user?.organization?.plan)
   const [instances, setInstances] = useState<WhatsappInstance[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -206,6 +210,16 @@ export default function InstancesPage() {
   }
 
   const connectedCount = instances.filter((instance) => instance.status === 'CONNECTED').length
+  const reachedPlanLimit = instances.length >= plan.maxInstances
+  const openCreate = () => {
+    if (reachedPlanLimit) {
+      toast.error(`O plano ${plan.name} permite até ${plan.maxInstances} instâncias.`)
+      return
+    }
+    setCreateError('')
+    setNewName('')
+    setShowCreate(true)
+  }
 
   return (
     <div className="app-page space-y-6 pb-8">
@@ -215,14 +229,14 @@ export default function InstancesPage() {
         description="Conecte e gerencie os números usados nas conversas, grupos e campanhas."
         icon={Smartphone}
         actions={(
-          <button type="button" onClick={() => { setCreateError(''); setNewName(''); setShowCreate(true) }} className="btn-primary w-full justify-center px-4 py-2.5 sm:w-auto">
-            <Plus className="h-4 w-4" /> Nova instância
+          <button type="button" onClick={openCreate} className="btn-primary w-full justify-center px-4 py-2.5 sm:w-auto">
+            <Plus className="h-4 w-4" /> {reachedPlanLimit ? 'Limite atingido' : 'Nova instância'}
           </button>
         )}
       />
 
       <section className="grid gap-3 sm:grid-cols-3">
-        <SummaryCard label="Total de instâncias" value={instances.length} icon={Smartphone} tone="primary" />
+        <SummaryCard label={`${plan.name} · ${instances.length}/${plan.maxInstances} usadas`} value={instances.length} icon={Smartphone} tone="primary" />
         <SummaryCard label="Conectadas" value={connectedCount} icon={Wifi} tone="emerald" />
         <SummaryCard label="Desconectadas" value={instances.length - connectedCount} icon={WifiOff} tone="rose" />
       </section>
@@ -258,7 +272,7 @@ export default function InstancesPage() {
             <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary"><Smartphone className="h-6 w-6" /></div>
             <h3 className="text-sm font-bold text-foreground">Nenhuma instância cadastrada</h3>
             <p className="mt-1 max-w-sm text-xs leading-5 text-muted-foreground">Crie uma instância e escaneie o QR Code para conectar seu primeiro número.</p>
-            <button type="button" onClick={() => setShowCreate(true)} className="btn-primary mt-4 px-4 py-2.5"><Plus className="h-4 w-4" /> Nova instância</button>
+            <button type="button" onClick={openCreate} className="btn-primary mt-4 px-4 py-2.5"><Plus className="h-4 w-4" /> Nova instância</button>
           </div>
         )}
       </section>

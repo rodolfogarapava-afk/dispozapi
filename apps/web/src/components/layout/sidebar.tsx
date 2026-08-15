@@ -10,6 +10,7 @@ import {
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/store/auth.store'
 import { useUiStore } from '@/store/ui.store'
+import { getPlan } from '@/lib/plans'
 
 const navSections = [
   {
@@ -36,18 +37,11 @@ const navSections = [
   },
 ]
 
-const PLAN_LABELS: Record<string, string> = {
-  FREE: 'Gratuito',
-  BASIC: 'Básico',
-  PRO: 'Pro',
-  ENTERPRISE: 'Enterprise',
-}
-
 export function Sidebar() {
   const pathname = usePathname()
   const { user, logout } = useAuthStore()
   const { sidebarOpen, sidebarCollapsed, setSidebarOpen, toggleSidebarCollapsed } = useUiStore()
-  const plan = user?.organization?.plan || 'PRO'
+  const plan = getPlan(user?.organization?.plan)
 
   const renderContent = (collapsed: boolean, mobile = false) => (
     <>
@@ -114,7 +108,7 @@ export function Sidebar() {
           <div className="mb-2 overflow-hidden rounded-xl border border-violet-500/20 bg-gradient-to-br from-violet-500/15 via-primary/10 to-transparent p-3">
             <div className="flex items-center justify-between gap-2">
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-violet-300">Plano {PLAN_LABELS[plan] || plan}</p>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-violet-300">Plano {plan.name}</p>
                 <p className="mt-1 text-[11px] text-muted-foreground">Recursos da conta ativos</p>
               </div>
               <Sparkles className="h-4 w-4 text-violet-300" />

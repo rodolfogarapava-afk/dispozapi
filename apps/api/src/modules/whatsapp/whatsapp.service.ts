@@ -4,6 +4,7 @@ import { emitToOrg } from '../../common/ws-connections'
 import { pauseBot, resumeBot, markPlatformSent } from '../chatbot/bot-control'
 import { ChatbotService } from '../chatbot/chatbot.service'
 import { classifyConversation, removeDealFromPipeline } from '../chatbot/classifier.service'
+import { getPlanDefinition, planLimitMessage } from '../../common/plan-limits'
 import { phoneFromJid, phonesMatch } from '../../common/phone'
 import { storeBuffer } from './media.util'
 
@@ -23,6 +24,16 @@ const evo = axios.create({
 
 export class WhatsappService {
   async createInstance(orgId: string, name: string) {
+    const [organization, instanceCount] = await Promise.all([
+      prisma.organization.findUnique({ where: { id: orgId }, select: { plan: true } }),
+      prisma.whatsappInstance.count({ where: { organizationId: orgId } }),
+    ])
+    if (!organization) throw { statusCode: 404, message: 'Organização não encontrada' }
+    const plan = getPlanDefinition(organization.plan)
+    if (instanceCount >= plan.maxInstances) {
+      throw { statusCode: 403, message: planLimitMessage(plan, 'instâncias do WhatsApp', plan.maxInstances) }
+    }
+
     const webhookUrl = `${process.env.API_URL}/webhooks/whatsapp`
     await evo.post('/instance/create', {
       instanceName: `${orgId}_${name}`,

@@ -1,5 +1,6 @@
 import { PrismaClient, Prisma } from '@prisma/client'
 import bcrypt from 'bcryptjs'
+import { getPlanDefinition } from '../../common/plan-limits'
 const prisma = new PrismaClient()
 
 const DAY = 24 * 60 * 60 * 1000
@@ -118,7 +119,10 @@ export class AdminService {
   async updateOrganization(id: string, data: any) {
     const allowed: Prisma.OrganizationUpdateInput = {}
     if (data.status !== undefined) allowed.status = data.status
-    if (data.plan !== undefined) allowed.plan = data.plan
+    if (data.plan !== undefined) {
+      allowed.plan = data.plan
+      if (data.mrr === undefined) allowed.mrr = getPlanDefinition(data.plan).price
+    }
     if (data.mrr !== undefined) allowed.mrr = Number(data.mrr)
     if (data.trialEndsAt !== undefined) allowed.trialEndsAt = data.trialEndsAt ? new Date(data.trialEndsAt) : null
     if (data.planExpires !== undefined) allowed.planExpires = data.planExpires ? new Date(data.planExpires) : null
@@ -220,10 +224,11 @@ export class AdminService {
     if (exists) throw { statusCode: 400, message: 'Email do dono já cadastrado' }
     const slug = data.name.toLowerCase().replace(/\s+/g, '-') + '-' + Date.now().toString(36)
     const password = await bcrypt.hash(data.ownerPassword, 12)
+    const selectedPlan = getPlanDefinition(data.plan)
     const org = await prisma.organization.create({
       data: {
         name: data.name, slug,
-        plan: (data.plan as any) || 'FREE', status: (data.status as any) || 'TRIAL',
+        plan: selectedPlan.code as any, status: (data.status as any) || 'TRIAL', mrr: selectedPlan.price,
         users: { create: { name: data.ownerName || data.ownerEmail, email: data.ownerEmail, password, role: 'OWNER', emailVerified: true, active: true } },
       },
       select: { id: true, name: true, slug: true, plan: true, status: true },

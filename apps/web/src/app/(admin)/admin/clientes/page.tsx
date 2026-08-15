@@ -8,6 +8,7 @@ import { getAdminBasePath } from '@/lib/admin-route'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import toast from 'react-hot-toast'
 import { Check, ChevronDown, Loader2, Search, ChevronRight, Plus, X } from 'lucide-react'
+import { PLANS, formatPlanPrice } from '@/lib/plans'
 
 interface Org {
   id: string; name: string; slug: string; plan: string; status: string
@@ -25,7 +26,10 @@ const STATUS: Record<string, { label: string; color: string }> = {
 }
 const STATUS_OPTS = ['TRIAL', 'ACTIVE', 'PAST_DUE', 'SUSPENDED', 'CANCELED']
 const PLAN_OPTS = ['FREE', 'STARTER', 'PRO', 'ENTERPRISE']
-const PLAN_OPTIONS = PLAN_OPTS.map((value) => ({ value, label: value }))
+const PLAN_OPTIONS = PLAN_OPTS.map((value) => {
+  const item = PLANS[value as keyof typeof PLANS]
+  return { value, label: item.price ? `${item.name} · ${formatPlanPrice(item.price)}` : item.name }
+})
 const STATUS_OPTIONS = STATUS_OPTS.map((value) => ({ value, label: STATUS[value].label, color: STATUS[value].color }))
 
 export default function AdminClientesPage() {
@@ -61,8 +65,8 @@ export default function AdminClientesPage() {
   const patch = async (id: string, data: any) => {
     setBusyId(id)
     try {
-      await api.patch(`/admin/organizations/${id}`, data)
-      setItems((prev) => prev.map((o) => (o.id === id ? { ...o, ...data } : o)))
+      const response = await api.patch(`/admin/organizations/${id}`, data)
+      setItems((prev) => prev.map((o) => (o.id === id ? { ...o, ...response.data } : o)))
     } catch {}
     finally { setBusyId(null) }
   }
@@ -183,7 +187,7 @@ export default function AdminClientesPage() {
 }
 
 function NewOrgModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
-  const [form, setForm] = useState({ name: '', ownerName: '', ownerEmail: '', ownerPassword: '', plan: 'FREE', status: 'TRIAL' })
+  const [form, setForm] = useState({ name: '', ownerName: '', ownerEmail: '', ownerPassword: '', plan: 'STARTER', status: 'ACTIVE' })
   const [saving, setSaving] = useState(false)
   const cls = 'w-full px-2 py-1.5 rounded-lg text-xs bg-card border border-border text-foreground focus:outline-none focus:border-[#00AEEF]'
 

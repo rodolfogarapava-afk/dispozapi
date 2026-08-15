@@ -6,6 +6,8 @@ import { confirmToast } from '@/lib/confirm'
 import { Plus, X, Pencil, UserX, Shield, Loader2, UsersRound } from 'lucide-react'
 import { PageHeader } from '@/components/layout/page-header'
 import { DarkSelect } from '@/components/ui/dark-select'
+import { getPlan } from '@/lib/plans'
+import { useAuthStore } from '@/store/auth.store'
 
 interface Member {
   id: string; name: string; email: string; role: string; avatar: string | null; active: boolean; dealsCount: number
@@ -20,11 +22,15 @@ const ROLE_LABEL: Record<string, string> = { OWNER: 'Dono', ADMIN: 'Administrado
 const inputCls = 'app-input py-2'
 
 export default function TeamPage() {
+  const user = useAuthStore((state) => state.user)
+  const plan = getPlan(user?.organization?.plan)
   const [members, setMembers] = useState<Member[]>([])
   const [loading, setLoading] = useState(true)
   const [modal, setModal] = useState<{ mode: 'create' | 'edit'; member?: Member } | null>(null)
   const [form, setForm] = useState({ name: '', email: '', password: '', role: 'MEMBER', active: true })
   const [saving, setSaving] = useState(false)
+  const activeMembers = members.filter((member) => member.active).length
+  const reachedPlanLimit = activeMembers >= plan.maxTeamUsers
 
   const load = () => {
     setLoading(true)
@@ -32,7 +38,14 @@ export default function TeamPage() {
   }
   useEffect(() => { load() }, [])
 
-  const openCreate = () => { setForm({ name: '', email: '', password: '', role: 'MEMBER', active: true }); setModal({ mode: 'create' }) }
+  const openCreate = () => {
+    if (reachedPlanLimit) {
+      toast.error(`O plano ${plan.name} permite até ${plan.maxTeamUsers} usuários ativos.`)
+      return
+    }
+    setForm({ name: '', email: '', password: '', role: 'MEMBER', active: true })
+    setModal({ mode: 'create' })
+  }
   const openEdit = (m: Member) => { setForm({ name: m.name, email: m.email, password: '', role: m.role, active: m.active }); setModal({ mode: 'edit', member: m }) }
 
   const submit = async (e: React.FormEvent) => {
@@ -68,8 +81,13 @@ export default function TeamPage() {
         title="Atendentes"
         description="Gerencie quem pode acessar e atender pela conta."
         icon={UsersRound}
-        actions={<button onClick={openCreate} className="btn-primary"><Plus className="w-4 h-4" /> Novo atendente</button>}
+        actions={<button onClick={openCreate} className="btn-primary"><Plus className="w-4 h-4" /> {reachedPlanLimit ? 'Limite atingido' : 'Novo atendente'}</button>}
       />
+
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-violet-500/20 bg-violet-500/[0.06] px-4 py-3 text-xs">
+        <span className="font-semibold text-violet-200">Plano {plan.name}</span>
+        <span className="text-muted-foreground">{activeMembers} de {plan.maxTeamUsers} usuários ativos</span>
+      </div>
 
       {loading ? (
         <div className="flex items-center justify-center h-64"><Loader2 className="w-6 h-6 animate-spin" style={{ color: '#00AEEF' }} /></div>

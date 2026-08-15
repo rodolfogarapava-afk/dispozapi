@@ -8,6 +8,7 @@ import { confirmToast } from '@/lib/confirm'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { getAdminBasePath } from '@/lib/admin-route'
 import { Loader2, ArrowLeft, Save, Trash2, Pencil, UserPlus, KeyRound, Star, Power, X } from 'lucide-react'
+import { PLANS, getPlan } from '@/lib/plans'
 
 interface UserRow { id: string; name: string; email: string; role: string; active: boolean; isSuperAdmin: boolean; createdAt: string }
 interface Detail {
@@ -163,8 +164,8 @@ export default function AdminClienteDetailPage() {
             </select>
           </Field>
           <Field label="Plano">
-            <select value={form.plan} onChange={(e) => setForm({ ...form, plan: e.target.value })} className={inputCls}>
-              {PLAN_OPTS.map((p) => <option key={p} value={p}>{p}</option>)}
+            <select value={form.plan} onChange={(e) => { const plan = getPlan(e.target.value); setForm({ ...form, plan: plan.code, mrr: plan.price }) }} className={inputCls}>
+              {PLAN_OPTS.map((p) => <option key={p} value={p}>{PLANS[p as keyof typeof PLANS].name}</option>)}
             </select>
           </Field>
           <Field label="MRR (R$)">
