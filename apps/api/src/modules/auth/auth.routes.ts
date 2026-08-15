@@ -3,7 +3,13 @@ import { AuthController } from './auth.controller'
 
 export async function authRoutes(app: FastifyInstance) {
   const ctrl = new AuthController(app)
-  app.post('/register', ctrl.register.bind(ctrl))
+  app.post('/register', async (_request, reply) => {
+    return reply.code(403).send({
+      statusCode: 403,
+      error: 'Forbidden',
+      message: 'Cadastro público desativado. Solicite acesso ao administrador da plataforma.',
+    })
+  })
   app.post('/login', ctrl.login.bind(ctrl))
   app.post('/refresh', ctrl.refresh.bind(ctrl))
   app.get('/me', { preHandler: [app.authenticate] }, ctrl.me.bind(ctrl))

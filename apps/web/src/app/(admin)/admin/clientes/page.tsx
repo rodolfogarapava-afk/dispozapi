@@ -68,7 +68,7 @@ export default function AdminClientesPage() {
           <p className="text-sm text-muted-foreground mt-0.5">{total} organizações na plataforma</p>
         </div>
         <button onClick={() => setNewModal(true)} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold text-white" style={{ background: 'linear-gradient(135deg, #00AEEF, #0A84FF)' }}>
-          <Plus className="w-4 h-4" /> Nova organização
+          <Plus className="w-4 h-4" /> Cadastrar cliente
         </button>
       </div>
 
@@ -173,7 +173,7 @@ function NewOrgModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
     setSaving(true)
     try {
       await api.post('/admin/organizations', form)
-      toast.success('Organização criada')
+      toast.success('Cliente cadastrado')
       onCreated()
     } catch (e: any) { toast.error(e?.message || 'Erro ao criar'); setSaving(false) }
   }
@@ -182,7 +182,7 @@ function NewOrgModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)' }} onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="rounded-2xl p-6 w-full max-w-md border border-border" style={{ background: 'hsl(var(--surface-1))' }}>
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-base font-semibold text-white">Nova organização</h2>
+          <h2 className="text-base font-semibold text-white">Cadastrar cliente</h2>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-accent"><X className="w-4 h-4" /></button>
         </div>
         <form onSubmit={submit} className="space-y-3">
@@ -197,10 +197,10 @@ function NewOrgModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
           <p className="text-[11px] text-muted-foreground">Dono da conta (faz login no app):</p>
           <div><label className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1 block">Nome do dono</label><input value={form.ownerName} onChange={(e) => setForm({ ...form, ownerName: e.target.value })} className={cls} /></div>
           <div><label className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1 block">Email do dono</label><input type="email" required value={form.ownerEmail} onChange={(e) => setForm({ ...form, ownerEmail: e.target.value })} className={cls} /></div>
-          <div><label className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1 block">Senha do dono</label><input type="text" required value={form.ownerPassword} onChange={(e) => setForm({ ...form, ownerPassword: e.target.value })} className={cls} /></div>
+          <div><label className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1 block">Senha inicial do cliente</label><input type="password" required autoComplete="new-password" value={form.ownerPassword} onChange={(e) => setForm({ ...form, ownerPassword: e.target.value })} className={cls} /></div>
           <div className="flex gap-2 pt-2">
             <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-lg border border-border text-sm text-muted-foreground hover:bg-accent">Cancelar</button>
-            <button type="submit" disabled={saving} className="flex-1 py-2.5 rounded-lg text-sm font-semibold text-white disabled:opacity-50" style={{ background: '#00AEEF' }}>{saving ? 'Criando...' : 'Criar'}</button>
+            <button type="submit" disabled={saving} className="flex-1 py-2.5 rounded-lg text-sm font-semibold text-white disabled:opacity-50" style={{ background: '#00AEEF' }}>{saving ? 'Cadastrando...' : 'Cadastrar'}</button>
           </div>
         </form>
       </div>

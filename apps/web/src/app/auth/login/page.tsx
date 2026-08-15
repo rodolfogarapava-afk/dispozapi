@@ -58,8 +58,7 @@ export default function LoginPage() {
       </form>
 
       <p className="text-center text-sm text-muted-foreground mt-6">
-        Não tem conta?{' '}
-        <Link href="/auth/register" className="font-medium" style={{ color: '#00AEEF' }}>Criar conta grátis</Link>
+        O acesso é liberado pelo administrador da plataforma.
       </p>
     </div>
   )
