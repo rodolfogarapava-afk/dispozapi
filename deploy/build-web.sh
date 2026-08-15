@@ -18,6 +18,11 @@ if [[ -z ${NEXT_PUBLIC_API_URL:-} ]]; then
   exit 1
 fi
 
+if [[ -z ${ADMIN_PANEL_PATH:-} ]]; then
+  echo "ADMIN_PANEL_PATH não foi configurada. Build cancelado."
+  exit 1
+fi
+
 cd "$app_dir"
 pnpm --filter @crm/web build
 

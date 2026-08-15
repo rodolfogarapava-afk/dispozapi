@@ -1,14 +1,16 @@
 'use client'
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { ShieldCheck, Loader2 } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
 import { api } from '@/lib/api'
+import { getAdminBasePath } from '@/lib/admin-route'
 
 // Login isolado da plataforma. Só super-admin entra; usuário comum é barrado
 // aqui mesmo (sem cair no app do cliente).
 export default function AdminLoginPage() {
   const router = useRouter()
+  const pathname = usePathname()
   const { login } = useAuthStore()
   const [form, setForm] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
@@ -27,7 +29,7 @@ export default function AdminLoginPage() {
         setLoading(false)
         return
       }
-      router.push('/admin')
+      router.push(getAdminBasePath(pathname))
     } catch (err: any) {
       setError(err?.message || 'Email ou senha inválidos')
       setLoading(false)

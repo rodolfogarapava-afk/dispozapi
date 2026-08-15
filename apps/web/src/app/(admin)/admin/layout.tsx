@@ -5,28 +5,29 @@ import Link from 'next/link'
 import { Loader2, ShieldCheck, LayoutDashboard, Building2, TrendingUp, ArrowLeft, LogOut } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
 import { cn } from '@/lib/utils'
-
-const adminNav = [
-  { href: '/admin', label: 'Visão Geral', icon: LayoutDashboard },
-  { href: '/admin/clientes', label: 'Clientes', icon: Building2 },
-  { href: '/admin/crescimento', label: 'Crescimento', icon: TrendingUp },
-]
+import { getAdminBasePath } from '@/lib/admin-route'
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
   const { token, user, hydrated, fetchMe } = useAuthStore()
+  const basePath = getAdminBasePath(pathname)
+  const loginPath = `${basePath}/login`
+  const adminNav = [
+    { href: basePath, label: 'Visão Geral', icon: LayoutDashboard },
+    { href: `${basePath}/clientes`, label: 'Clientes', icon: Building2 },
+    { href: `${basePath}/crescimento`, label: 'Crescimento', icon: TrendingUp },
+  ]
 
-  // A própria tela de login (/admin/login) não passa pelo gate — senão ninguém
-  // conseguiria entrar.
-  const isLoginPage = pathname === '/admin/login'
+  // A própria tela de login não passa pelo gate — senão ninguém conseguiria entrar.
+  const isLoginPage = pathname === loginPath
 
   useEffect(() => {
     if (isLoginPage || !hydrated) return
-    if (!token) { router.push('/admin/login'); return }
+    if (!token) { router.push(loginPath); return }
     if (!user) { fetchMe(); return }
-    if (user && !user.isSuperAdmin) router.push('/admin/login')
-  }, [isLoginPage, hydrated, token, user])
+    if (user && !user.isSuperAdmin) router.push(loginPath)
+  }, [isLoginPage, hydrated, token, user, loginPath, fetchMe, router])
 
   if (isLoginPage) return <>{children}</>
 
@@ -41,7 +42,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const logoutAdmin = () => {
     localStorage.removeItem('crm_token')
     useAuthStore.setState({ user: null, token: null })
-    router.push('/admin/login')
+    router.push(loginPath)
   }
 
   return (
@@ -56,7 +57,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
         <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
           {adminNav.map(({ href, label, icon: Icon }) => {
-            const active = href === '/admin' ? pathname === '/admin' : pathname.startsWith(href)
+            const active = href === basePath ? pathname === basePath : pathname.startsWith(href)
             return (
               <Link key={href} href={href}
                 className={cn('flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150',

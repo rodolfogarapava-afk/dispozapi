@@ -1,11 +1,12 @@
 'use client'
 import { useEffect, useState, useCallback } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { api } from '@/lib/api'
 import { confirmToast } from '@/lib/confirm'
 import { formatCurrency, formatDate } from '@/lib/utils'
+import { getAdminBasePath } from '@/lib/admin-route'
 import { Loader2, ArrowLeft, Save, Trash2, Pencil, UserPlus, KeyRound, Star, Power, X } from 'lucide-react'
 
 interface UserRow { id: string; name: string; email: string; role: string; active: boolean; isSuperAdmin: boolean; createdAt: string }
@@ -31,6 +32,8 @@ const inputCls = 'w-full px-2 py-1.5 rounded-lg text-xs bg-card border border-bo
 export default function AdminClienteDetailPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
+  const pathname = usePathname()
+  const adminBasePath = getAdminBasePath(pathname)
   const [d, setD] = useState<Detail | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -87,7 +90,7 @@ export default function AdminClienteDetailPage() {
     try {
       await api.delete(`/admin/organizations/${id}`)
       toast.success('Organização excluída')
-      router.push('/admin/clientes')
+      router.push(`${adminBasePath}/clientes`)
     } catch (e: any) { toast.error(e?.message || 'Erro ao excluir') }
   }
 
@@ -106,13 +109,13 @@ export default function AdminClienteDetailPage() {
   }
 
   if (loading) return <div className="flex items-center justify-center h-64"><Loader2 className="w-6 h-6 animate-spin" style={{ color: '#00AEEF' }} /></div>
-  if (!d) return <p className="text-sm text-muted-foreground">Cliente não encontrado. <Link href="/admin/clientes" className="text-[#00AEEF]">Voltar</Link></p>
+  if (!d) return <p className="text-sm text-muted-foreground">Cliente não encontrado. <Link href={`${adminBasePath}/clientes`} className="text-[#00AEEF]">Voltar</Link></p>
 
   const st = STATUS[d.status] || STATUS.TRIAL
 
   return (
     <div className="space-y-5">
-      <Link href="/admin/clientes" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+      <Link href={`${adminBasePath}/clientes`} className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
         <ArrowLeft className="w-3 h-3" /> Voltar para clientes
       </Link>
 

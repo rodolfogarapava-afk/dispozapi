@@ -77,6 +77,7 @@ fi
 printf '%s\n' \
   "NEXT_PUBLIC_API_URL=http://${public_host}:${api_port}" \
   "NEXT_PUBLIC_APP_URL=http://${public_host}:${web_port}" \
+  "ADMIN_PANEL_PATH=central-$(openssl rand -hex 14)" \
   > "$web_env"
 chmod 600 "$infra_env" "$api_env" "$web_env"
 

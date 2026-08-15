@@ -1,7 +1,9 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { api } from '@/lib/api'
+import { getAdminBasePath } from '@/lib/admin-route'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import toast from 'react-hot-toast'
 import { Loader2, Search, ChevronRight, Plus, X } from 'lucide-react'
@@ -24,6 +26,8 @@ const STATUS_OPTS = ['TRIAL', 'ACTIVE', 'PAST_DUE', 'SUSPENDED', 'CANCELED']
 const PLAN_OPTS = ['FREE', 'STARTER', 'PRO', 'ENTERPRISE']
 
 export default function AdminClientesPage() {
+  const pathname = usePathname()
+  const adminBasePath = getAdminBasePath(pathname)
   const [items, setItems] = useState<Org[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -116,7 +120,7 @@ export default function AdminClientesPage() {
                   return (
                     <tr key={o.id} className="hover:bg-accent/30">
                       <td className="px-4 py-3">
-                        <Link href={`/admin/clientes/${o.id}`} className="flex items-center gap-2 group">
+                        <Link href={`${adminBasePath}/clientes/${o.id}`} className="flex items-center gap-2 group">
                           <div>
                             <p className="font-semibold text-foreground group-hover:text-[#00AEEF]">{o.name}</p>
                             <p className="text-[10px] text-muted-foreground">{o.slug}</p>
@@ -145,7 +149,7 @@ export default function AdminClientesPage() {
                       </td>
                       <td className="px-4 py-3 hidden lg:table-cell text-[11px] text-muted-foreground">{formatDate(o.createdAt)}</td>
                       <td className="px-4 py-3 text-right">
-                        <Link href={`/admin/clientes/${o.id}`} className="inline-flex items-center gap-1 text-xs text-[#00AEEF] hover:underline">
+                        <Link href={`${adminBasePath}/clientes/${o.id}`} className="inline-flex items-center gap-1 text-xs text-[#00AEEF] hover:underline">
                           Detalhes <ChevronRight className="w-3 h-3" />
                         </Link>
                       </td>
