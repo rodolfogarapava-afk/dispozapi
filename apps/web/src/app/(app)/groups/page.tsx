@@ -4,7 +4,7 @@ import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } f
 import toast from 'react-hot-toast'
 import {
   Check, CheckCircle2, ChevronDown, ExternalLink, FileDown, Link2, Loader2, LogIn,
-  RefreshCw, Search, ShieldCheck, Smartphone, Sparkles, UserPlus, Users, X,
+  RefreshCw, Search, ShieldAlert, ShieldCheck, Smartphone, Sparkles, UserPlus, Users, X,
 } from 'lucide-react'
 import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
@@ -111,6 +111,8 @@ export default function GroupsPage() {
 
   const connectedInstance = instances.find((instance) => instance.id === instanceId)
   const importableParticipants = selectedGroup?.participants?.filter((participant) => participant.canImport) || []
+  const participantTotal = selectedGroup?.participants?.length || 0
+  const protectedParticipantCount = Math.max(0, participantTotal - importableParticipants.length)
 
   const loadGroups = useCallback(async () => {
     if (!instanceId) {
@@ -358,8 +360,39 @@ export default function GroupsPage() {
           </div>
           <div className="grid lg:grid-cols-[minmax(0,1fr)_310px]">
             <div className="border-b border-border p-4 lg:border-b-0 lg:border-r">
+              {protectedParticipantCount > 0 ? (
+                <div role="status" className={cn(
+                  'mb-3 rounded-xl border p-3',
+                  importableParticipants.length
+                    ? 'border-amber-500/25 bg-amber-500/[0.07]'
+                    : 'border-rose-500/25 bg-rose-500/[0.07]',
+                )}>
+                  <div className="flex items-start gap-2.5">
+                    <span className={cn(
+                      'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
+                      importableParticipants.length ? 'bg-amber-500/15 text-amber-300' : 'bg-rose-500/15 text-rose-300',
+                    )}>
+                      <ShieldAlert className="h-4 w-4" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-bold text-foreground">
+                        {importableParticipants.length
+                          ? `${protectedParticipantCount} ${protectedParticipantCount === 1 ? 'número não foi disponibilizado' : 'números não foram disponibilizados'}`
+                          : 'Nenhum telefone foi disponibilizado neste grupo'}
+                      </p>
+                      <p className="mt-1 text-[10px] leading-4 text-muted-foreground">
+                        O WhatsApp retornou somente um identificador interno (LID) para esses participantes, sem revelar o telefone. Isso varia conforme o grupo e a conta conectada; o ZapShark não consegue converter nem contornar essa proteção.
+                      </p>
+                      <div className="mt-2 flex flex-wrap gap-2 text-[9px] font-semibold">
+                        <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-emerald-300">{importableParticipants.length} disponíveis</span>
+                        <span className="rounded-full border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-amber-300">{protectedParticipantCount} protegidos</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
               <div className="mb-2 flex items-center justify-between text-[10px]">
-                <button type="button" onClick={() => setSelectedParticipantIds(importableParticipants.map((participant) => participant.id))} className="text-primary hover:underline">Selecionar disponíveis</button>
+                <button type="button" disabled={!importableParticipants.length} onClick={() => setSelectedParticipantIds(importableParticipants.map((participant) => participant.id))} className="text-primary hover:underline disabled:cursor-not-allowed disabled:opacity-40 disabled:no-underline">Selecionar disponíveis</button>
                 <button type="button" onClick={() => setSelectedParticipantIds([])} className="text-muted-foreground hover:text-foreground">Limpar</button>
               </div>
               <div className="max-h-72 overflow-y-auto rounded-xl border border-border">
