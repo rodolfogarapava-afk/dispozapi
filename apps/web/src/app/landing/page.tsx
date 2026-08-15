@@ -47,11 +47,11 @@ export default function LandingPage() {
           <nav className="hidden md:flex items-center gap-7 text-sm text-white/70">
             <a href="#recursos" className="hover:text-white transition">Recursos</a>
             <a href="#como" className="hover:text-white transition">Como funciona</a>
-            <a href="#precos" className="hover:text-white transition">Teste grátis</a>
+            <a href="#precos" className="hover:text-white transition">Acesso</a>
           </nav>
           <div className="flex items-center gap-2">
             <Link href="/auth/login" className="hidden sm:block text-sm text-white/70 hover:text-white transition px-3 py-2">Entrar</Link>
-            <a href="#precos" className="btn-primary text-sm">Começar grátis</a>
+            <a href="#precos" className="btn-primary text-sm">Ver acesso</a>
           </div>
         </div>
       </header>
@@ -83,7 +83,7 @@ export default function LandingPage() {
           <div className="reveal flex flex-col sm:flex-row items-center justify-center gap-3 mb-5" style={{ transitionDelay: '180ms' }}>
             <a href="#precos" className="group inline-flex items-center gap-2 px-7 py-3.5 rounded-xl text-sm font-semibold text-white transition-all"
               style={{ background: `linear-gradient(135deg, ${BLUE}, ${BLUE2})`, boxShadow: `0 0 30px ${BLUE}45` }}>
-              Testar 3 dias grátis
+              Como obter acesso
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </a>
             <Link href="/auth/login" className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl text-sm font-semibold lp-glass hover:bg-white/5 transition">
@@ -283,15 +283,15 @@ export default function LandingPage() {
             <Star className="w-3.5 h-3.5" style={{ color: BLUE }} /> Oferta de lançamento
           </div>
           <h2 className="reveal text-4xl sm:text-5xl font-bold mb-5 leading-tight" style={{ transitionDelay: '60ms' }}>
-            Teste <span className="lp-gradient-text">3 dias grátis</span>
+            Acesso <span className="lp-gradient-text">controlado</span>
           </h2>
           <p className="reveal text-white/60 mb-9 max-w-lg mx-auto" style={{ transitionDelay: '120ms' }}>
-            Experimente o ZapShark completo, sem compromisso. Conecte seu WhatsApp e veja a IA
-            trabalhando pela sua operação hoje mesmo.
+            As contas são criadas exclusivamente pelo administrador. Se sua conta já foi
+            liberada, use as credenciais recebidas para entrar.
           </p>
 
           <div className="reveal rounded-2xl lp-glass p-8 mb-8 text-left" style={{ transitionDelay: '160ms' }}>
-            <p className="text-sm font-semibold mb-4 text-center">Tudo incluído no teste:</p>
+            <p className="text-sm font-semibold mb-4 text-center">Recursos incluídos no acesso:</p>
             <div className="grid sm:grid-cols-2 gap-3">
               {[
                 'Atendimento multi-WhatsApp', 'Pipeline automática com IA',
@@ -309,13 +309,13 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <a href="/auth/register" className="reveal group inline-flex items-center gap-2 px-8 py-4 rounded-xl text-base font-semibold text-white transition-all"
+          <a href="/auth/login" className="reveal group inline-flex items-center gap-2 px-8 py-4 rounded-xl text-base font-semibold text-white transition-all"
             style={{ background: `linear-gradient(135deg, ${BLUE}, ${BLUE2})`, boxShadow: `0 0 40px ${BLUE}50`, transitionDelay: '200ms' }}>
-            Começar meu teste grátis
+            Entrar na plataforma
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </a>
           <p className="reveal text-xs text-white/40 mt-4 flex items-center justify-center gap-1.5" style={{ transitionDelay: '240ms' }}>
-            <Shield className="w-3.5 h-3.5" /> Sem cartão · Sem fidelidade · Suporte humano
+            <Shield className="w-3.5 h-3.5" /> Cadastro realizado somente pelo administrador
           </p>
         </div>
       </section>
@@ -331,7 +331,7 @@ export default function LandingPage() {
           <div className="flex items-center gap-6 text-sm text-white/50">
             <Link href="/auth/login" className="hover:text-white transition">Entrar</Link>
             <a href="#recursos" className="hover:text-white transition">Recursos</a>
-            <a href="#precos" className="hover:text-white transition">Teste grátis</a>
+            <a href="#precos" className="hover:text-white transition">Acesso</a>
           </div>
           <p className="text-xs text-white/30">© {new Date().getFullYear()} ZapShark</p>
         </div>
