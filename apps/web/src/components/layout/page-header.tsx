@@ -6,7 +6,7 @@ interface PageHeaderProps {
   eyebrow: string
   title: string
   description: string
-  icon: LucideIcon
+  icon?: LucideIcon
   actions?: ReactNode
   className?: string
   tone?: 'primary' | 'emerald' | 'violet'
@@ -31,7 +31,7 @@ export function PageHeader({
     <header className={cn('app-page-header', className)}>
       <div className="min-w-0">
         <div className={cn('app-page-eyebrow', toneClasses[tone])}>
-          <Icon className="h-3.5 w-3.5" />
+          {Icon ? <Icon className="h-3.5 w-3.5" /> : null}
           {eyebrow}
         </div>
         <h1 className="app-page-title">{title}</h1>

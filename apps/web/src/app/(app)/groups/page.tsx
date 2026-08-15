@@ -4,7 +4,7 @@ import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } f
 import toast from 'react-hot-toast'
 import {
   Check, ChevronDown, ExternalLink, FileDown, Loader2,
-  RefreshCw, Search, ShieldAlert, ShieldCheck, Smartphone, Sparkles, UserPlus, Users, X,
+  RefreshCw, Search, ShieldAlert, ShieldCheck, Smartphone, UserPlus, Users, X,
 } from 'lucide-react'
 import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
@@ -194,7 +194,6 @@ export default function GroupsPage() {
         eyebrow="Inteligência de audiência"
         title="Localizador de grupos"
         description="Sincronize e organize os grupos da conta conectada."
-        icon={Sparkles}
         tone="emerald"
         actions={(
           <div className="app-status border-primary/20 bg-primary/10 text-primary">
