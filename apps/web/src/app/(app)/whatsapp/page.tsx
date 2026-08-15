@@ -86,6 +86,10 @@ function sortConversations(items: Conversation[]) {
   })
 }
 
+function isIndividualConversation(conversation: Conversation) {
+  return !conversation.isGroup && !conversation.remoteJid?.includes('@g.us')
+}
+
 export default function WhatsappPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -125,6 +129,8 @@ export default function WhatsappPage() {
   }
 
   const mergeConversation = useCallback((conversation: Conversation, incomingMessage?: Message) => {
+    if (!isIndividualConversation(conversation)) return
+
     setConversations((prev) => {
       const currentActiveId = activeConvRef.current?.id
       const exists = prev.some((item) => item.id === conversation.id)
@@ -193,7 +199,7 @@ export default function WhatsappPage() {
     try {
       const r = await api.get('/whatsapp/conversations', { params: { instanceId } })
       if (activeInstanceRef.current?.id !== instanceId) return
-      const data = sortConversations(r.data || [])
+      const data = sortConversations((r.data || []).filter(isIndividualConversation))
       setConversations(data)
       setFiltered(data)
       setActiveConv((prev) => (prev ? data.find((item) => item.id === prev.id) || null : null))
@@ -229,6 +235,7 @@ export default function WhatsappPage() {
 
       const nextConversation: Conversation = payload.conversation
       const nextMessage: Message = payload.message
+      if (!isIndividualConversation(nextConversation)) return
       const isActiveConversation = payload.conversationId === activeConvRef.current?.id
 
       mergeConversation(

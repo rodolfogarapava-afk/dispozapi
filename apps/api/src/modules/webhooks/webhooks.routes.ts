@@ -228,25 +228,30 @@ async function handleMessageUpsert(instanceName: string, data: any) {
     }
   }
 
-  emitToOrg(inst.organizationId, 'new_message', {
-    instanceId: inst.id,
-    conversationId: conv.id,
-    conversation: {
-      id: conv.id,
-      instanceId: conv.instanceId,
-      remoteJid: conv.remoteJid,
-      pushName: conv.pushName,
-      lastMessage: conv.lastMessage,
-      lastMessageAt: conv.lastMessageAt?.toISOString() ?? timestamp.toISOString(),
-      unreadCount: conv.unreadCount,
-      profilePicUrl: conv.profilePicUrl,
-      isGroup,
-    },
-    message: {
-      ...msg,
-      timestamp: msg.timestamp.toISOString(),
-    },
-  })
+  // A Central de Atendimento exibe apenas conversas individuais. Mensagens de
+  // grupos continuam persistidas para integrações, mas não entram na lista em
+  // tempo real nem competem com os contatos que precisam de atendimento.
+  if (!isGroup) {
+    emitToOrg(inst.organizationId, 'new_message', {
+      instanceId: inst.id,
+      conversationId: conv.id,
+      conversation: {
+        id: conv.id,
+        instanceId: conv.instanceId,
+        remoteJid: conv.remoteJid,
+        pushName: conv.pushName,
+        lastMessage: conv.lastMessage,
+        lastMessageAt: conv.lastMessageAt?.toISOString() ?? timestamp.toISOString(),
+        unreadCount: conv.unreadCount,
+        profilePicUrl: conv.profilePicUrl,
+        isGroup,
+      },
+      message: {
+        ...msg,
+        timestamp: msg.timestamp.toISOString(),
+      },
+    })
+  }
 
   // Dispara o bot de IA (debounce interno; ignora mensagens próprias e grupos conforme config).
   handleInboundForBot({

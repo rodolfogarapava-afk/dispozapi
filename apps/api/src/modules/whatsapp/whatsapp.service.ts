@@ -334,7 +334,11 @@ export class WhatsappService {
     // phonesMatch (chave canônica: DDI/9º dígito), evitando falso positivo.
     const core = digits.slice(-8)
     const convs = await prisma.conversation.findMany({
-      where: { instance: { organizationId: orgId }, remoteJid: { contains: core } },
+      where: {
+        instance: { organizationId: orgId },
+        remoteJid: { contains: core },
+        NOT: { remoteJid: { endsWith: '@g.us' } },
+      },
       orderBy: { lastMessageAt: 'desc' },
       select: {
         id: true,
@@ -496,7 +500,11 @@ export class WhatsappService {
   /** Lista conversas com bot pausado, agrupadas por motivo (para o painel). */
   async listPausedBots(orgId: string) {
     const convs = await prisma.conversation.findMany({
-      where: { botPaused: true, instance: { organizationId: orgId } },
+      where: {
+        botPaused: true,
+        instance: { organizationId: orgId },
+        NOT: { remoteJid: { endsWith: '@g.us' } },
+      },
       orderBy: { botPausedUntil: 'asc' },
       select: {
         id: true,
@@ -523,7 +531,10 @@ export class WhatsappService {
     if (!instance) throw { statusCode: 404, message: 'Instância não encontrada' }
 
     const conversations = await prisma.conversation.findMany({
-      where: { instanceId: instance.id },
+      where: {
+        instanceId: instance.id,
+        NOT: { remoteJid: { endsWith: '@g.us' } },
+      },
       orderBy: [{ lastMessageAt: 'desc' }, { updatedAt: 'desc' }],
       skip: (page - 1) * limit,
       take: limit,
