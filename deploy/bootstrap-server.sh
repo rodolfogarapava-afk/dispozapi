@@ -31,6 +31,7 @@ umask 077
 
 infra_env="$shared_dir/infra.env"
 api_env="$shared_dir/api.env"
+web_env="$shared_dir/web.env"
 
 if [[ ! -f "$infra_env" ]]; then
   postgres_password=$(openssl rand -hex 24)
@@ -72,14 +73,20 @@ if [[ ! -f "$api_env" ]]; then
     "API_URL=http://${public_host}:${api_port}" \
     > "$api_env"
 fi
-chmod 600 "$infra_env" "$api_env"
+
+printf '%s\n' \
+  "NEXT_PUBLIC_API_URL=http://${public_host}:${api_port}" \
+  "NEXT_PUBLIC_APP_URL=http://${public_host}:${web_port}" \
+  > "$web_env"
+chmod 600 "$infra_env" "$api_env" "$web_env"
 
 cd "$current_dir"
 pnpm install --frozen-lockfile
 pnpm db:generate
 
-export NEXT_PUBLIC_API_URL="http://${public_host}:${api_port}"
-export NEXT_PUBLIC_APP_URL="http://${public_host}:${web_port}"
+set -a
+source "$web_env"
+set +a
 pnpm build
 
 docker compose \
