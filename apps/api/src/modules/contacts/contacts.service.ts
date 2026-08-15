@@ -264,6 +264,14 @@ export class ContactService {
     }
   }
 
+  async removeGroupList(id: string, orgId: string) {
+    const removed = await prisma.groupContactList.deleteMany({
+      where: { id, organizationId: orgId },
+    })
+    if (!removed.count) throw { statusCode: 404, message: 'Lista de grupo não encontrada' }
+    return { success: true, id }
+  }
+
   async findOne(id: string, orgId: string) {
     const c = await prisma.contact.findFirst({ where: { id, organizationId: orgId }, include: { activities: true, deals: { include: { stage: true } } } })
     if (!c) throw { statusCode: 404, message: 'Contato não encontrado' }

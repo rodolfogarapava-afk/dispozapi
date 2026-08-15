@@ -6,6 +6,7 @@ export async function contactRoutes(app: FastifyInstance) {
   app.get('/', auth, ctrl.list.bind(ctrl))
   app.get('/group-lists', auth, ctrl.groupLists.bind(ctrl))
   app.get('/group-lists/:groupId', auth, ctrl.groupList.bind(ctrl))
+  app.delete('/group-lists/:groupId', auth, ctrl.removeGroupList.bind(ctrl))
   app.post('/', auth, ctrl.create.bind(ctrl))
   app.post('/bulk-import', auth, ctrl.bulkImport.bind(ctrl))
   app.get('/:id', auth, ctrl.findOne.bind(ctrl))

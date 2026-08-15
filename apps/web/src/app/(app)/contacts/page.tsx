@@ -5,7 +5,7 @@ import { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'rea
 import toast from 'react-hot-toast'
 import {
   ChevronLeft, ChevronRight, ContactRound, Download, Eye, FolderOpen,
-  Loader2, Plus, Search, Users, X,
+  Loader2, Plus, Search, Trash2, Users, X,
 } from 'lucide-react'
 import { api } from '@/lib/api'
 import { cn, formatPhone } from '@/lib/utils'
@@ -111,6 +111,7 @@ export default function ContactsPage() {
   const [activeGroup, setActiveGroup] = useState<GroupListDetail | null>(null)
   const [loadingGroup, setLoadingGroup] = useState(false)
   const [exportingGroupId, setExportingGroupId] = useState<string | null>(null)
+  const [deletingGroupId, setDeletingGroupId] = useState<string | null>(null)
   const LIMIT = 15
 
   const loadContacts = useCallback(async () => {
@@ -226,6 +227,26 @@ export default function ContactsPage() {
     }
   }
 
+  const deleteGroupList = async (list: GroupListPreview) => {
+    const confirmed = await confirmToast(`Excluir a lista "${list.name}"? Os contatos continuarão disponíveis no CRM.`, {
+      confirmLabel: 'Excluir lista',
+      danger: true,
+    })
+    if (!confirmed) return
+
+    setDeletingGroupId(list.id)
+    try {
+      await api.delete(`/contacts/group-lists/${encodeURIComponent(list.id)}`)
+      setGroupLists((current) => current.filter((item) => item.id !== list.id))
+      setActiveGroup((current) => current?.id === list.id ? null : current)
+      toast.success('Lista excluída. Os contatos foram mantidos no CRM.')
+    } catch (error) {
+      toast.error(errorMessage(error, 'Não foi possível excluir a lista'))
+    } finally {
+      setDeletingGroupId(null)
+    }
+  }
+
   const switchView = (next: ContactView) => {
     setView(next)
     setSearch('')
@@ -259,7 +280,7 @@ export default function ContactsPage() {
       </div>
 
       {view === 'groups' ? (
-        <GroupListsView lists={filteredGroupLists} loading={loadingGroups} exportingId={exportingGroupId} onOpen={openGroup} onExport={exportGroup} />
+        <GroupListsView lists={filteredGroupLists} loading={loadingGroups} exportingId={exportingGroupId} deletingId={deletingGroupId} onOpen={openGroup} onExport={exportGroup} onDelete={deleteGroupList} />
       ) : (
         <AllContactsView contacts={contacts} loading={isLoading} page={page} pages={pages} total={total} limit={LIMIT} onEdit={openEdit} onDelete={handleDelete} onPage={setPage} />
       )}
@@ -281,12 +302,14 @@ export default function ContactsPage() {
   )
 }
 
-function GroupListsView({ lists, loading, exportingId, onOpen, onExport }: {
+function GroupListsView({ lists, loading, exportingId, deletingId, onOpen, onExport, onDelete }: {
   lists: GroupListPreview[]
   loading: boolean
   exportingId: string | null
+  deletingId: string | null
   onOpen: (list: GroupListPreview) => void
   onExport: (list: GroupListPreview) => void
+  onDelete: (list: GroupListPreview) => void
 }) {
   if (loading) return <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{Array.from({ length: 6 }, (_, index) => <div key={index} className="app-surface h-40 animate-pulse bg-accent/30" />)}</div>
   if (!lists.length) return (
@@ -317,6 +340,7 @@ function GroupListsView({ lists, loading, exportingId, onOpen, onExport }: {
           <div className="mt-auto grid grid-cols-2 gap-2">
             <button type="button" onClick={() => onOpen(list)} className="inline-flex items-center justify-center gap-2 rounded-xl border border-border px-3 py-2 text-xs font-semibold text-foreground transition hover:bg-accent"><Eye className="h-3.5 w-3.5" /> Ver</button>
             <button type="button" onClick={() => onExport(list)} disabled={exportingId === list.id} className="inline-flex items-center justify-center gap-2 rounded-xl border border-border px-3 py-2 text-xs font-semibold text-foreground transition hover:bg-accent disabled:opacity-50">{exportingId === list.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />} Exportar</button>
+            <button type="button" onClick={() => onDelete(list)} disabled={deletingId === list.id} className="col-span-2 inline-flex items-center justify-center gap-2 rounded-xl border border-red-500/25 bg-red-500/[0.06] px-3 py-2 text-xs font-semibold text-red-400 transition hover:border-red-500/40 hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-50">{deletingId === list.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />} Excluir lista</button>
           </div>
         </article>
       ))}
