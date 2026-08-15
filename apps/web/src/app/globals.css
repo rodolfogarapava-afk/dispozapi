@@ -216,3 +216,8 @@
   .reveal { opacity: 1 !important; transform: none !important; transition: none; }
   .lp-float, .lp-pulse, .lp-spin-slow, .lp-grid, .lp-gradient-text { animation: none !important; }
 }
+
+.admin-select-menu::-webkit-scrollbar { width: 6px; }
+.admin-select-menu::-webkit-scrollbar-track { background: transparent; }
+.admin-select-menu::-webkit-scrollbar-thumb { background: #334155; border-radius: 999px; }
+.admin-select-menu::-webkit-scrollbar-thumb:hover { background: #475569; }
