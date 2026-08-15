@@ -208,6 +208,30 @@ export default function CampaignsPage() {
   const activeCampaigns = campaigns.filter((campaign) => campaign.status === 'RUNNING').length
   const reachedCampaignLimit = activeCampaigns >= plan.maxActiveCampaigns
 
+  useEffect(() => {
+    const noticeId = toast.custom((notice) => (
+      <div
+        role="status"
+        className="flex w-[calc(100vw-2rem)] max-w-lg items-start gap-3 rounded-2xl border border-amber-500/30 bg-[hsl(var(--surface-1))] p-4 shadow-[0_18px_55px_-20px_rgba(245,158,11,.65)]"
+      >
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/15 text-amber-300">
+          <Clock3 className="h-5 w-5" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-bold text-foreground">Antes de iniciar o disparo</p>
+          <p className="mt-1 text-xs leading-5 text-muted-foreground">
+            Aguarde pelo menos duas horas antes de realizar o disparo, para evitar restrições.
+          </p>
+        </div>
+        <button type="button" onClick={() => toast.dismiss(notice.id)} aria-label="Fechar aviso" className="rounded-lg p-1.5 text-muted-foreground transition hover:bg-accent hover:text-foreground">
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+    ), { duration: 12000, position: 'top-center' })
+
+    return () => toast.dismiss(noticeId)
+  }, [])
+
   const load = useCallback(async () => {
     setLoading(true)
     setLoadingInstances(true)
